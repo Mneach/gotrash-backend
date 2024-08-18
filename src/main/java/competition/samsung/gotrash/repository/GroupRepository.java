@@ -1,7 +1,7 @@
 package competition.samsung.gotrash.repository;
 
-import org.apache.catalina.Group;
+import competition.samsung.gotrash.entity.Group;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface GroupRepository extends MongoRepository<Group, Integer> {
+public interface GroupRepository extends MongoRepository<Group, String> {
 }

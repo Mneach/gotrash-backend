@@ -1,7 +1,6 @@
-package competition.samsung.gotrash.rest;
+package competition.samsung.gotrash.controller;
 
 import competition.samsung.gotrash.service.GroupService;
-import competition.samsung.gotrash.service.GroupServiceImpl;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
