@@ -1,4 +1,4 @@
-package competition.samsung.gotrash.rest;
+package competition.samsung.gotrash.controller;
 
 import competition.samsung.gotrash.entity.User;
 import competition.samsung.gotrash.service.UserService;
