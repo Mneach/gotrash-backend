@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -20,8 +21,8 @@ public class NotificationServiceImpl implements NotificationService{
     }
 
     @Override
-    public Notification findById(String id) {
-        return notificationRepository.findById(id).get();
+    public Optional<Notification> findById(String id) {
+        return notificationRepository.findById(id);
     }
 
     @Override

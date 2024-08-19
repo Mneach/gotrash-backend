@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -19,8 +20,8 @@ public class RewardServiceImpl implements RewardService{
     }
 
     @Override
-    public Reward findById(String id) {
-        return rewardRepository.findById(id).get();
+    public Optional<Reward> findById(String id) {
+        return rewardRepository.findById(id);
     }
 
     @Override

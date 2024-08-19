@@ -1,13 +1,13 @@
 package competition.samsung.gotrash.service;
 
 import competition.samsung.gotrash.entity.Reward;
-import competition.samsung.gotrash.entity.Trash;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RewardService {
     List<Reward> findAll();
-    Reward findById(String id);
+    Optional<Reward> findById(String id);
     Reward save(Reward reward);
     String delete(String id);
 }

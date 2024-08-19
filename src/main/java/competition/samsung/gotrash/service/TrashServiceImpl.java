@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -19,8 +20,8 @@ public class TrashServiceImpl implements TrashService{
     }
 
     @Override
-    public Trash findById(String id) {
-        return trashRepository.findById(id).get();
+    public Optional<Trash> findById(String id) {
+        return trashRepository.findById(id);
     }
 
     @Override
