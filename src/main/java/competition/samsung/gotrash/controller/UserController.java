@@ -1,10 +1,10 @@
 package competition.samsung.gotrash.controller;
 
 import competition.samsung.gotrash.dto.AddCoinRequest;
-import competition.samsung.gotrash.entity.Item;
+import competition.samsung.gotrash.entity.Trash;
 import competition.samsung.gotrash.entity.User;
 import competition.samsung.gotrash.response.StandardResponse;
-import competition.samsung.gotrash.service.ItemService;
+import competition.samsung.gotrash.service.TrashService;
 import competition.samsung.gotrash.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,7 +21,7 @@ import java.util.Optional;
 public class UserController {
 
     private UserService userService;
-    private ItemService itemService;
+    private TrashService trashService;
 
     @GetMapping("/users")
     public StandardResponse<List<User>> findAll(){
@@ -31,14 +31,14 @@ public class UserController {
     }
 
     @GetMapping("/user/{id}")
-    public StandardResponse<Optional<User>> findById(@PathVariable Integer id){
+    public StandardResponse<User> findById(@PathVariable Integer id){
         Optional<User> data = userService.findById(id);
 
         if(data.isEmpty()){
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User Not Found", null);
         }
 
-        return new StandardResponse<>(HttpStatus.OK.value(), "User retrieved successfully", data);
+        return new StandardResponse<>(HttpStatus.OK.value(), "User retrieved successfully", data.get());
     }
 
     @PostMapping("/user/add")
@@ -63,8 +63,8 @@ public class UserController {
         return new StandardResponse<>(HttpStatus.OK.value(), "Successfully created guest", data);
     }
 
-    @PostMapping("/user/update")
-    public StandardResponse<User> update(@RequestBody User user){
+    @PutMapping("/user/update/{id}")
+    public StandardResponse<User> update(@PathVariable("id") String id, @RequestBody User user){
         Optional<User> data = userService.findById(user.getId());
 
         if(data.isPresent()){
@@ -96,16 +96,16 @@ public class UserController {
         }
     }
 
-    @GetMapping("/user/addCoin")
+    @PostMapping("/user/addCoin")
     public StandardResponse<User> addCoin(@RequestBody AddCoinRequest request){
         Optional<User> userOptional = userService.findById(request.getUserId());
-        Optional<Item> itemOptional = itemService.findById(request.getItemId());
+        Optional<Trash> trashOptional = trashService.findById(request.getTrashId());
 
-        if (userOptional.isPresent() && itemOptional.isPresent()) {
+        if (userOptional.isPresent() && trashOptional.isPresent()) {
             User user = userOptional.get();
-            Item item = itemOptional.get();
+            Trash trash = trashOptional.get();
 
-            BigInteger updatedCoins = user.getCoins().add(item.getItemCoins());
+            BigInteger updatedCoins = user.getCoins().add(trash.getCoin());
             user.setCoins(updatedCoins);
 
             User data = userService.save(user);

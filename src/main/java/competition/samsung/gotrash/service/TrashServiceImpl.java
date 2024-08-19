@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class TrashServiceImpl implements TrashService{
+public class TrashServiceImpl implements TrashService {
 
     private TrashRepository trashRepository;
 
@@ -32,6 +32,6 @@ public class TrashServiceImpl implements TrashService{
     @Override
     public String delete(String id) {
         trashRepository.deleteById(id);
-        return "Successfully delete trash with id : " + id;
+        return "Successfully delete item with id : " + id;
     }
 }

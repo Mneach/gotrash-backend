@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class AddCoinRequest {
     private int userId;
-    private String itemId;
+    private String trashId;
 }

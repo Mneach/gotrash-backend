@@ -6,18 +6,20 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 
-@Document(collection = "trash")
+@Document(collection = "trashes")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Trash {
+
     @Id
     private String id;
-    private String trashName;
-    private double latitude;
-    private double longitude;
+    private String name;
+    private String category;
+    private BigInteger coin;
 
     @CreatedDate
     private LocalDateTime createdAt;
