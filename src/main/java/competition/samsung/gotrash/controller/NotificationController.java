@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -39,33 +40,27 @@ public class NotificationController {
 
     @GetMapping("/notifications/user/{id}")
     public StandardResponse<List<Notification>> getNotificationsByUser(@PathVariable int id) {
-        Optional<User> user = userService.findById(id);
-
-        if(user.isPresent()){
-            List<Notification> notifications = notificationService.findByUser(user.get());
-            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved notifications for user", notifications);
-        }else{
-            return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User Not Found", null);
-        }
-
+        List<Notification> notifications = notificationService.findByUserId(id);
+        return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved notifications for user", notifications);
     }
 
     @PostMapping("/notification/add")
     public StandardResponse<Notification> createNotification(@RequestBody Notification notification) {
+        notification.setId(UUID.randomUUID().toString());
         Notification savedNotification = notificationService.save(notification);
         return new StandardResponse<>(HttpStatus.CREATED.value(), "Successfully created notification", savedNotification);
     }
 
-    @PutMapping("/notification/update/{id}")
+    @PatchMapping("/notification/update/{id}")
     public StandardResponse<Notification> updateNotification(@PathVariable("id") String id, @RequestBody Notification notification) {
         Optional<Notification> existingNotificationOptional = notificationService.findById(id);
 
         if (existingNotificationOptional.isPresent()) {
             Notification existingNotification = existingNotificationOptional.get();
 
-            existingNotification.setNotificationTitle(notification.getNotificationTitle());
-            existingNotification.setNotificationDescription(notification.getNotificationDescription());
-            existingNotification.setUser(notification.getUser());
+            existingNotification.setTitle(notification.getTitle());
+            existingNotification.setDescription(notification.getDescription());
+            existingNotification.setUserId(notification.getUserId());
             existingNotification.setUpdatedAt(LocalDateTime.now());
 
             Notification updatedNotification = notificationService.save(existingNotification);

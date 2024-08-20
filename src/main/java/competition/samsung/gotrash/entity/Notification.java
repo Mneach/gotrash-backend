@@ -17,11 +17,10 @@ public class Notification {
 
     @Id
     private String id;
-    private String notificationTitle;
-    private String notificationDescription;
+    private String title;
+    private String description;
+    private Integer userId;
 
-    @DBRef
-    private User user;
     @CreatedDate
     private LocalDateTime createdAt;
     @LastModifiedDate

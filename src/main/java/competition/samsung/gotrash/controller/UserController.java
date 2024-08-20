@@ -4,6 +4,7 @@ import competition.samsung.gotrash.dto.AddCoinRequest;
 import competition.samsung.gotrash.entity.Trash;
 import competition.samsung.gotrash.entity.User;
 import competition.samsung.gotrash.response.StandardResponse;
+import competition.samsung.gotrash.service.SequenceGeneratorService;
 import competition.samsung.gotrash.service.TrashService;
 import competition.samsung.gotrash.service.UserService;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static competition.samsung.gotrash.entity.User.SEQUENCE_NAME;
+
 @RestController
 @RequestMapping("/api")
 @AllArgsConstructor
@@ -22,6 +25,7 @@ public class UserController {
 
     private UserService userService;
     private TrashService trashService;
+    private SequenceGeneratorService sequenceGeneratorService;
 
     @GetMapping("/users")
     public StandardResponse<List<User>> findAll(){
@@ -43,17 +47,21 @@ public class UserController {
 
     @PostMapping("/user/add")
     public StandardResponse<User> save(@RequestBody User user){
+        Integer id = sequenceGeneratorService.getSequenceNumber(SEQUENCE_NAME);
+        user.setId(id);
+
         User data = userService.save(user);
         return new StandardResponse<>(HttpStatus.OK.value(), "Successfully created user", data);
     }
 
     @PostMapping("/user/addGuest")
     public StandardResponse<User> saveGuest(){
-        User user = new User(1,
+        Integer id = sequenceGeneratorService.getSequenceNumber(SEQUENCE_NAME);
+        User user = new User(id,
                 "dummy",
                 "dummy123",
                 "dummy@gmail.com",
-                "http://example.com/images/dummy.png",
+                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTd-8kr6IGwu8T6y_Lc-0ZfAnGBFF4MvLjY-w&s",
                 BigInteger.valueOf(150),
                 LocalDateTime.now(),
                 LocalDateTime.now());
@@ -63,7 +71,7 @@ public class UserController {
         return new StandardResponse<>(HttpStatus.OK.value(), "Successfully created guest", data);
     }
 
-    @PutMapping("/user/update/{id}")
+    @PatchMapping("/user/update/{id}")
     public StandardResponse<User> update(@PathVariable("id") String id, @RequestBody User user){
         Optional<User> data = userService.findById(user.getId());
 
@@ -73,7 +81,7 @@ public class UserController {
             existingUser.setPassword(user.getPassword());
             existingUser.setEmail(user.getEmail());
             existingUser.setProfileImage(user.getProfileImage());
-            existingUser.setCoins(user.getCoins());
+            existingUser.setCoin(user.getCoin());
             existingUser.setUpdatedAt(LocalDateTime.now());
 
             User updatedUser  = userService.save(existingUser);
@@ -105,8 +113,8 @@ public class UserController {
             User user = userOptional.get();
             Trash trash = trashOptional.get();
 
-            BigInteger updatedCoins = user.getCoins().add(trash.getCoin());
-            user.setCoins(updatedCoins);
+            BigInteger updateCoin = user.getCoin().add(trash.getCoin());
+            user.setCoin(updateCoin);
 
             User data = userService.save(user);
             return new StandardResponse<>(HttpStatus.OK.value(), "User Coin Updated", data);

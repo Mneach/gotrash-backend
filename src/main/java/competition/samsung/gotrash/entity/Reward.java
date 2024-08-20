@@ -17,8 +17,8 @@ public class Reward {
 
     @Id
     private String id;
-    private String rewardName;
-    private BigInteger rewardCoins;
+    private String name;
+    private BigInteger coin;
 
     @CreatedDate
     private LocalDateTime createdAt;
