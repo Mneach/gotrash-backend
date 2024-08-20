@@ -7,11 +7,12 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: production
     networks:
-      - app-network
+      - web
 
 volumes:
   data: {}
 
 networks:
-  app-network:
-    driver: bridge
+  web:
+    external: true
+    name: web
