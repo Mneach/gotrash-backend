@@ -40,15 +40,8 @@ public class NotificationController {
 
     @GetMapping("/notifications/user/{id}")
     public StandardResponse<List<Notification>> getNotificationsByUser(@PathVariable int id) {
-        Optional<User> user = userService.findById(id);
-
-        if(user.isPresent()){
-            List<Notification> notifications = notificationService.findByUser(user.get());
-            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved notifications for user", notifications);
-        }else{
-            return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User Not Found", null);
-        }
-
+        List<Notification> notifications = notificationService.findByUserId(id);
+        return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved notifications for user", notifications);
     }
 
     @PostMapping("/notification/add")
