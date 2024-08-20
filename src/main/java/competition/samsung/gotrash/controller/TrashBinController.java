@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -36,11 +37,12 @@ public class TrashBinController {
 
     @PostMapping("/trashbin/add")
     public StandardResponse<TrashBin> createTrashBin(@RequestBody TrashBin trashBin) {
+        trashBin.setId(UUID.randomUUID().toString());
         TrashBin savedTrashBin = trashBinService.save(trashBin);
         return new StandardResponse<>(HttpStatus.CREATED.value(), "Successfully created trash bin", savedTrashBin);
     }
 
-    @PutMapping("/trashbin/update/{id}")
+    @PatchMapping("/trashbin/update/{id}")
     public StandardResponse<TrashBin> updateTrashBin(@PathVariable("id") String id, @RequestBody TrashBin trashBin) {
         Optional<TrashBin> existingTrashBinOptional = trashBinService.findById(id);
 

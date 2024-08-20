@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -36,19 +37,20 @@ public class RewardController {
 
     @PostMapping("/reward/add")
     public StandardResponse<Reward> createReward(@RequestBody Reward reward) {
+        reward.setId(UUID.randomUUID().toString());
         Reward savedReward = rewardService.save(reward);
         return new StandardResponse<>(HttpStatus.CREATED.value(), "Successfully created reward", savedReward);
     }
 
-    @PutMapping("/reward/update/{id}")
+    @PatchMapping("/reward/update/{id}")
     public StandardResponse<Reward> updateReward(@PathVariable("id") String id, @RequestBody Reward reward) {
         Optional<Reward> existingRewardOptional = rewardService.findById(id);
 
         if (existingRewardOptional.isPresent()) {
             Reward existingReward = existingRewardOptional.get();
 
-            existingReward.setRewardName(reward.getRewardName());
-            existingReward.setRewardCoins(reward.getRewardCoins());
+            existingReward.setName(reward.getName());
+            existingReward.setCoin(reward.getCoin());
             existingReward.setUpdatedAt(LocalDateTime.now());
 
             Reward updatedReward = rewardService.save(existingReward);

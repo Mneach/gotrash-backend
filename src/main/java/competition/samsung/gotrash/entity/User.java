@@ -20,7 +20,7 @@ public class User {
     private String password;
     private String email;
     private String profileImage;
-    private BigInteger coins;
+    private BigInteger coin;
 
     @CreatedDate
     private LocalDateTime createdAt;
