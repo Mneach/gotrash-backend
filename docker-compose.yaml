@@ -1,30 +1,17 @@
 version: "3.8"
-
 services:
-  mongodb:
-    image: mongo
-    container_name: mongodb
+  app:
+    build: .
     ports:
-      - "27017:27017"
-    volumes:
-      - data:/data
+      - "8080:8080"
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=rootuser
-      - MONGO_INITDB_ROOT_PASSWORD=rootpass
-  mongoexpress:
-    image: mongo-express
-    container_name: mongo-express
-    restart: always
-    ports:
-      - "8081:8081"
-    environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=rootuser
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=rootpass
-      - ME_CONFIG_MONGODB_SERVER=mongodb
+      SPRING_PROFILES_ACTIVE: production
+    networks:
+      - app-network
 
 volumes:
   data: {}
 
 networks:
-  defaults:
-    name: mongodb_network
+  app-network:
+    driver: bridge
