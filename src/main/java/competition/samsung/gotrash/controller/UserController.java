@@ -4,6 +4,7 @@ import competition.samsung.gotrash.dto.AddCoinRequest;
 import competition.samsung.gotrash.entity.Trash;
 import competition.samsung.gotrash.entity.User;
 import competition.samsung.gotrash.response.StandardResponse;
+import competition.samsung.gotrash.service.SequenceGeneratorService;
 import competition.samsung.gotrash.service.TrashService;
 import competition.samsung.gotrash.service.UserService;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static competition.samsung.gotrash.entity.User.SEQUENCE_NAME;
+
 @RestController
 @RequestMapping("/api")
 @AllArgsConstructor
@@ -22,6 +25,7 @@ public class UserController {
 
     private UserService userService;
     private TrashService trashService;
+    private SequenceGeneratorService sequenceGeneratorService;
 
     @GetMapping("/users")
     public StandardResponse<List<User>> findAll(){
@@ -43,13 +47,17 @@ public class UserController {
 
     @PostMapping("/user/add")
     public StandardResponse<User> save(@RequestBody User user){
+        Integer id = sequenceGeneratorService.getSequenceNumber(SEQUENCE_NAME);
+        user.setId(id);
+
         User data = userService.save(user);
         return new StandardResponse<>(HttpStatus.OK.value(), "Successfully created user", data);
     }
 
     @PostMapping("/user/addGuest")
     public StandardResponse<User> saveGuest(){
-        User user = new User(1,
+        Integer id = sequenceGeneratorService.getSequenceNumber(SEQUENCE_NAME);
+        User user = new User(id,
                 "dummy",
                 "dummy123",
                 "dummy@gmail.com",
