@@ -24,7 +24,10 @@ repositories {
 }
 
 dependencies {
-	compileOnly 'software.amazon.awssdk:aws-sdk-java:2.27.8'
+	implementation 'software.amazon.awssdk:aws-sdk-java:2.27.8'
+	implementation platform('software.amazon.awssdk:bom:2.10.86')
+	implementation 'software.amazon.awssdk:aws-core'
+	implementation 'software.amazon.awssdk:s3'
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
