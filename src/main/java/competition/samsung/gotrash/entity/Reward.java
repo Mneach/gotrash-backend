@@ -19,6 +19,8 @@ public class Reward {
     private String id;
     private String name;
     private BigInteger coin;
+    private String description;
+    private String profileImageUrl;
 
     @CreatedDate
     private LocalDateTime createdAt;

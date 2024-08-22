@@ -18,6 +18,7 @@ import java.util.UUID;
 public class RewardController {
 
     private final RewardServiceImpl rewardService;
+//    private final S3Service s3Service;
 
     @GetMapping("/rewards")
     public StandardResponse<List<Reward>> getAllRewards() {
@@ -70,4 +71,9 @@ public class RewardController {
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Reward Not Found", null);
         }
     }
+
+//    @PostMapping("/upload")
+//    public StandardResponse<String> uploadFile(@RequestParam(value = "file") MultipartFile file) {
+//        return new StandardResponse<>(HttpStatus.OK.value(), "Success", s3Service.uploadFile(file));
+//    }
 }
