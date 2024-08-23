@@ -1,6 +1,6 @@
 package competition.samsung.gotrash.controller;
 
-import competition.samsung.gotrash.dto.AddCoinRequest;
+import competition.samsung.gotrash.dto.AddCoinDTO;
 import competition.samsung.gotrash.entity.Trash;
 import competition.samsung.gotrash.entity.User;
 import competition.samsung.gotrash.response.StandardResponse;
@@ -105,7 +105,7 @@ public class UserController {
     }
 
     @PostMapping("/user/addCoin")
-    public StandardResponse<User> addCoin(@RequestBody AddCoinRequest request){
+    public StandardResponse<User> addCoin(@RequestBody AddCoinDTO request){
         Optional<User> userOptional = userService.findById(request.getUserId());
         Optional<Trash> trashOptional = trashService.findById(request.getTrashId());
 
