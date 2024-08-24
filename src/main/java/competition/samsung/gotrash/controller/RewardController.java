@@ -2,7 +2,9 @@ package competition.samsung.gotrash.controller;
 
 import competition.samsung.gotrash.dto.RewardDTO;
 import competition.samsung.gotrash.entity.Reward;
+import competition.samsung.gotrash.entity.RewardCategory;
 import competition.samsung.gotrash.response.StandardResponse;
+import competition.samsung.gotrash.service.RewardCategoryService;
 import competition.samsung.gotrash.service.RewardServiceImpl;
 import competition.samsung.gotrash.service.S3Service;
 import lombok.AllArgsConstructor;
@@ -20,7 +22,7 @@ import java.util.UUID;
 @RequestMapping("/api")
 @AllArgsConstructor
 public class RewardController {
-
+    private final RewardCategoryService rewardCategoryService;
     private final RewardServiceImpl rewardService;
     private final S3Service s3Service;
 
@@ -40,34 +42,67 @@ public class RewardController {
         }
     }
 
-    @PostMapping("/reward/add")
-    public StandardResponse<Reward> createReward(@RequestBody Reward reward) {
+    @PostMapping(value = "/reward/add", consumes = {"multipart/form-data"})
+    public StandardResponse<Reward> createReward(@ModelAttribute RewardDTO rewardDTO) {
+        Reward reward = new Reward();
 
         reward.setId(UUID.randomUUID().toString());
-        Reward savedReward = rewardService.save(reward);
-        return new StandardResponse<>(HttpStatus.CREATED.value(), "Successfully created reward", savedReward);
+        reward.setName(rewardDTO.getName());
+        reward.setCoin(rewardDTO.getCoin());
+        reward.setDescription(rewardDTO.getDescription());
+        reward.setRewardCategoryId(rewardDTO.getRewardCategoryId());
+
+        Optional<RewardCategory> existingRewardCategoryOptional = rewardCategoryService.findById(rewardDTO.getRewardCategoryId());
+
+        if(existingRewardCategoryOptional.isPresent()){
+            try {
+                if(!rewardDTO.getFile().isEmpty()){
+                    String imageUrl = s3Service.uploadFileAndGetUrl(rewardDTO.getFile());
+                    reward.setImageUrl(imageUrl);
+                }
+
+                Reward savedReward = rewardService.save(reward);
+                return new StandardResponse<>(HttpStatus.CREATED.value(), "Successfully created reward", savedReward);
+            } catch (Exception e) {
+                // Handle the exception and return an error response
+                return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to upload file", null);
+            }
+        }else{
+            return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Reward Category Found", null);
+        }
     }
 
     @PatchMapping(value = "/reward/update/{id}", consumes = {"multipart/form-data"})
-    public StandardResponse<Reward> updateReward(@PathVariable("id") String id, @ModelAttribute RewardDTO reward) {
+    public StandardResponse<Reward> updateReward(@PathVariable("id") String id, @ModelAttribute RewardDTO rewardDTO) {
         Optional<Reward> existingRewardOptional = rewardService.findById(id);
 
         if (existingRewardOptional.isPresent()) {
             Reward existingReward = existingRewardOptional.get();
 
-            File fileObj = s3Service.convertMultiPartFileToFile(reward.getFile());
-            String fileName = System.currentTimeMillis() + "_" + reward.getFile().getOriginalFilename();
+            Optional<RewardCategory> existingRewardCategoryOptional = rewardCategoryService.findById(existingReward.getRewardCategoryId());
 
-            s3Service.uploadFile(fileObj, fileName);
-            String preSignedUrl = s3Service.getPresignUrl(fileName);
+            if(existingRewardCategoryOptional.isPresent()){
+                existingReward.setName(rewardDTO.getName());
+                existingReward.setCoin(rewardDTO.getCoin());
+                existingReward.setUpdatedAt(LocalDateTime.now());
+                existingReward.setDescription(rewardDTO.getDescription());
 
-            existingReward.setName(reward.getName());
-            existingReward.setCoin(reward.getCoin());
-            existingReward.setUpdatedAt(LocalDateTime.now());
-            existingReward.setImageUrl(preSignedUrl);
+                try {
+                    if(!rewardDTO.getFile().isEmpty()){
+                        String imageUrl = s3Service.uploadFileAndGetUrl(rewardDTO.getFile());
+                        existingReward.setImageUrl(imageUrl);
+                    }
 
-            Reward updatedReward = rewardService.save(existingReward);
-            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully updated reward", updatedReward);
+                    Reward updatedReward = rewardService.save(existingReward);
+                    return new StandardResponse<>(HttpStatus.OK.value(), "Successfully updated reward", updatedReward);
+                } catch (Exception e) {
+                    // Handle the exception and return an error response
+                    return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to upload file", null);
+                }
+            }else{
+                return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Reward Category Found", null);
+            }
+
         } else {
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Reward Not Found", null);
         }
@@ -84,14 +119,9 @@ public class RewardController {
         }
     }
 
-    @PostMapping("/upload")
-    public StandardResponse<String> uploadFile(@RequestParam(value = "file") MultipartFile file) {
-        File fileObj = s3Service.convertMultiPartFileToFile(file);
-        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-
-        s3Service.uploadFile(fileObj, fileName);
-        String preSignedUrl = s3Service.getPresignUrl(fileName);
-
-        return new StandardResponse<>(HttpStatus.OK.value(), "Success", preSignedUrl);
+    @GetMapping("/rewards/category/{id}")
+    public StandardResponse<List<Reward>> getRewardsByCategory(@PathVariable("id") String id) {
+        List<Reward> rewards = rewardService.findByRewardCategoryId(id);
+        return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved rewards category", rewards);
     }
 }

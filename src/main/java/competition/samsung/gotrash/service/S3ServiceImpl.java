@@ -32,7 +32,7 @@ public class S3ServiceImpl implements S3Service{
     @Autowired
     private S3Presigner s3Presigner;
 
-    public String uploadFile(File fileObj, String fileName) {
+    private String uploadFile(File fileObj, String fileName) {
         // Convert MultipartFile to File
 
         System.out.println("Bucket = " + bucketName);
@@ -49,7 +49,7 @@ public class S3ServiceImpl implements S3Service{
         return "File uploaded : " + fileName;
     }
 
-    public String getPresignUrl(String fileName){
+    private String getPresignUrl(String fileName){
         // Generate a pre-signed URL for the uploaded file
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
@@ -67,7 +67,7 @@ public class S3ServiceImpl implements S3Service{
         return presignedUrl.toString();
     }
 
-    public File convertMultiPartFileToFile(MultipartFile file) {
+    private File convertMultiPartFileToFile(MultipartFile file) {
         File convertedFile = new File(file.getOriginalFilename());
         try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
             fos.write(file.getBytes());
@@ -75,5 +75,13 @@ public class S3ServiceImpl implements S3Service{
             log.error("Error converting multipartFile to file", e);
         }
         return convertedFile;
+    }
+
+    public String uploadFileAndGetUrl(MultipartFile file) throws Exception {
+        File fileObj = convertMultiPartFileToFile(file);
+        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+
+        uploadFile(fileObj,fileName);
+        return getPresignUrl(fileName);
     }
 }

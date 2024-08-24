@@ -34,4 +34,9 @@ public class RewardServiceImpl implements RewardService{
         rewardRepository.deleteById(id);
         return "Successfully delete reward with id : " + id;
     }
+
+    @Override
+    public List<Reward> findByRewardCategoryId(String rewardCategoryId) {
+        return rewardRepository.findByRewardCategoryId(rewardCategoryId);
+    }
 }
