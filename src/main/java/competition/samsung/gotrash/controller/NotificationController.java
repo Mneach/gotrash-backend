@@ -38,10 +38,10 @@ public class NotificationController {
         }
     }
 
-    @GetMapping("/notifications/user/{id}")
-    public StandardResponse<List<Notification>> getNotificationsByUser(@PathVariable int id) {
+    @GetMapping("/notification/user/{id}")
+    public StandardResponse<List<Notification>> getNotificationByUserId(@PathVariable("id") Integer id) {
         List<Notification> notifications = notificationService.findByUserId(id);
-        return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved notifications for user", notifications);
+        return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved notifications", notifications);
     }
 
     @PostMapping("/notification/add")

@@ -10,4 +10,5 @@ public interface RewardService {
     Optional<Reward> findById(String id);
     Reward save(Reward reward);
     String delete(String id);
+    List<Reward> findByRewardCategoryId(String rewardCategoryId);
 }

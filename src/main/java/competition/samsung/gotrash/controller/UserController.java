@@ -1,9 +1,12 @@
 package competition.samsung.gotrash.controller;
 
-import competition.samsung.gotrash.dto.AddCoinRequest;
+import competition.samsung.gotrash.dto.AddCoinDTO;
+import competition.samsung.gotrash.dto.UserDTO;
+import competition.samsung.gotrash.entity.Reward;
 import competition.samsung.gotrash.entity.Trash;
 import competition.samsung.gotrash.entity.User;
 import competition.samsung.gotrash.response.StandardResponse;
+import competition.samsung.gotrash.service.S3Service;
 import competition.samsung.gotrash.service.SequenceGeneratorService;
 import competition.samsung.gotrash.service.TrashService;
 import competition.samsung.gotrash.service.UserService;
@@ -24,6 +27,7 @@ import static competition.samsung.gotrash.entity.User.SEQUENCE_NAME;
 public class UserController {
 
     private UserService userService;
+    private S3Service s3Service;
     private TrashService trashService;
     private SequenceGeneratorService sequenceGeneratorService;
 
@@ -45,47 +49,70 @@ public class UserController {
         return new StandardResponse<>(HttpStatus.OK.value(), "User retrieved successfully", data.get());
     }
 
-    @PostMapping("/user/add")
-    public StandardResponse<User> save(@RequestBody User user){
+    @PostMapping(value = "/user/add", consumes = {"multipart/form-data"})
+    public StandardResponse<User> save(@RequestBody UserDTO userDTO){
         Integer id = sequenceGeneratorService.getSequenceNumber(SEQUENCE_NAME);
+        User user = new User();
         user.setId(id);
+        user.setUsername(userDTO.getUsername());
+        user.setEmail(userDTO.getEmail());
+        user.setPassword(userDTO.getPassword());
+        user.setCoin(BigInteger.valueOf(0));
 
-        User data = userService.save(user);
-        return new StandardResponse<>(HttpStatus.OK.value(), "Successfully created user", data);
+        try {
+            if(!userDTO.getFile().isEmpty()){
+                String imageUrl = s3Service.uploadFileAndGetUrl(userDTO.getFile());
+                user.setImageUrl(imageUrl);
+            }
+
+            User savedUser = userService.save(user);
+            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully updated user", savedUser);
+        } catch (Exception e) {
+            // Handle the exception and return an error response
+            return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to upload file", null);
+        }
     }
 
     @PostMapping("/user/addGuest")
     public StandardResponse<User> saveGuest(){
         Integer id = sequenceGeneratorService.getSequenceNumber(SEQUENCE_NAME);
-        User user = new User(id,
-                "dummy",
-                "dummy123",
-                "dummy@gmail.com",
-                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTd-8kr6IGwu8T6y_Lc-0ZfAnGBFF4MvLjY-w&s",
-                BigInteger.valueOf(150),
-                LocalDateTime.now(),
-                LocalDateTime.now());
+        User user = new User();
+        user.setId(id);
+        user.setUsername("dummy");
+        user.setPassword("dummy123");
+        user.setEmail("dummy@gmail.com");
+        user.setImageUrl("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTd-8kr6IGwu8T6y_Lc-0ZfAnGBFF4MvLjY-w&s");
+        user.setCoin(BigInteger.valueOf(150));
 
         User data = userService.save(user);
 
         return new StandardResponse<>(HttpStatus.OK.value(), "Successfully created guest", data);
     }
 
-    @PatchMapping("/user/update/{id}")
-    public StandardResponse<User> update(@PathVariable("id") String id, @RequestBody User user){
-        Optional<User> data = userService.findById(user.getId());
+    @PatchMapping(value = "/user/update/{id}", consumes = {"multipart/form-data"})
+    public StandardResponse<User> update(@PathVariable("id") String id, @ModelAttribute UserDTO userDTO){
+        Optional<User> data = userService.findById(userDTO.getId());
 
         if(data.isPresent()){
             User existingUser = data.get();
-            existingUser.setUsername(user.getUsername());
-            existingUser.setPassword(user.getPassword());
-            existingUser.setEmail(user.getEmail());
-            existingUser.setProfileImage(user.getProfileImage());
-            existingUser.setCoin(user.getCoin());
+            existingUser.setUsername(userDTO.getUsername());
+            existingUser.setPassword(userDTO.getPassword());
+            existingUser.setEmail(userDTO.getEmail());
+            existingUser.setCoin(userDTO.getCoin());
             existingUser.setUpdatedAt(LocalDateTime.now());
 
-            User updatedUser  = userService.save(existingUser);
-            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully updated user", updatedUser);
+            try {
+                if(!userDTO.getFile().isEmpty()){
+                    String imageUrl = s3Service.uploadFileAndGetUrl(userDTO.getFile());
+                    existingUser.setImageUrl(imageUrl);
+                }
+
+                User udpatedUser = userService.save(existingUser);
+                return new StandardResponse<>(HttpStatus.OK.value(), "Successfully updated user", udpatedUser);
+            } catch (Exception e) {
+                // Handle the exception and return an error response
+                return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to upload file", null);
+            }
         }else{
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User Not Found", null);
         }
@@ -105,7 +132,7 @@ public class UserController {
     }
 
     @PostMapping("/user/addCoin")
-    public StandardResponse<User> addCoin(@RequestBody AddCoinRequest request){
+    public StandardResponse<User> addCoin(@RequestBody AddCoinDTO request){
         Optional<User> userOptional = userService.findById(request.getUserId());
         Optional<Trash> trashOptional = trashService.findById(request.getTrashId());
 

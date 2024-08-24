@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface NotificationService {
     List<Notification> findAll();
     Optional<Notification> findById(String id);
-    List<Notification> findByUserId(Integer id);
+    List<Notification>  findByUserId(Integer id);
     Notification save(Notification notification);
     String delete(String id);
 }
