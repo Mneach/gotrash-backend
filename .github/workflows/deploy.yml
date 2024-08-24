@@ -15,7 +15,7 @@ jobs:
 
       - name: Copy . file
         run: |
-          cp /home/tintin/secret/gotrash/application.properties ./src/main/resources/application.properties
+          cp /home/tintin/secret/gotrash/env.gotrash.backend ./env
 
       - name: Run Docker Compose
         run: |
