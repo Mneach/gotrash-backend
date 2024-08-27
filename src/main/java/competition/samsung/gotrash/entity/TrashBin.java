@@ -19,6 +19,9 @@ public class TrashBin {
     private String name;
     private double latitude;
     private double longitude;
+    private String address;
+    private String imageName;
+    private String imageUrl;
 
     @CreatedDate
     private LocalDateTime createdAt;

@@ -91,7 +91,7 @@ public class UserController {
 
             User savedUser = userService.save(user);
             savedUser.setImageUrl(imageUrl);
-            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully updated user", savedUser);
+            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully created user", savedUser);
         } catch (Exception e) {
             return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
         }
