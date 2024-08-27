@@ -1,8 +1,10 @@
 package competition.samsung.gotrash.controller;
 
+import competition.samsung.gotrash.constant.ServiceName;
 import competition.samsung.gotrash.dto.RewardDTO;
 import competition.samsung.gotrash.entity.Reward;
 import competition.samsung.gotrash.entity.RewardCategory;
+import competition.samsung.gotrash.entity.User;
 import competition.samsung.gotrash.response.StandardResponse;
 import competition.samsung.gotrash.service.RewardCategoryService;
 import competition.samsung.gotrash.service.RewardServiceImpl;
@@ -15,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,17 +31,38 @@ public class RewardController {
 
     @GetMapping("/rewards")
     public StandardResponse<List<Reward>> getAllRewards() {
-        List<Reward> rewardsList = rewardService.findAll();
-        return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved rewards" , rewardsList);
+        List<Reward> rewards = rewardService.findAll();
+
+        try{
+            for(Reward reward : rewards){
+                if(!Objects.equals(reward.getImageName(), "")){
+                    String presignUrl = s3Service.getPresignUrl(reward.getImageName());
+                    reward.setImageUrl(presignUrl);
+                }
+            }
+            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved rewards" , rewards);
+        }catch (Exception e){
+            return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
+        }
     }
 
     @GetMapping("/reward/{id}")
     public StandardResponse<Reward> getRewardById(@PathVariable("id") String id) {
-        Optional<Reward> reward = rewardService.findById(id);
-        if (reward.isPresent()) {
-            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved reward" ,reward.get());
-        } else {
+        Optional<Reward> data = rewardService.findById(id);
+        if (data.isEmpty()) {
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Reward Not Found", null);
+        }
+
+        try{
+            Reward reward = data.get();
+
+            if(!Objects.equals(reward.getImageName(), "")){
+                String presignUrl = s3Service.getPresignUrl(reward.getImageName());
+                reward.setImageUrl(presignUrl);
+            }
+            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved reward" , reward);
+        }catch(Exception e){
+            return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
         }
     }
 
@@ -56,16 +80,20 @@ public class RewardController {
 
         if(existingRewardCategoryOptional.isPresent()){
             try {
+
+                String imageUrl = "";
                 if(!rewardDTO.getFile().isEmpty()){
-                    String imageUrl = s3Service.uploadFileAndGetUrl(rewardDTO.getFile());
-                    reward.setImageUrl(imageUrl);
+                    imageUrl = s3Service.uploadFileAndGetUrl(rewardDTO.getFile(), ServiceName.REWARD, rewardDTO.getId());
+                    reward.setImageName(rewardDTO.getFile().getOriginalFilename());
+                }else{
+                    reward.setImageName("");
                 }
 
                 Reward savedReward = rewardService.save(reward);
+                savedReward.setImageUrl(imageUrl);
                 return new StandardResponse<>(HttpStatus.CREATED.value(), "Successfully created reward", savedReward);
             } catch (Exception e) {
-                // Handle the exception and return an error response
-                return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to upload file", null);
+                return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
             }
         }else{
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Reward Category Found", null);
@@ -88,15 +116,18 @@ public class RewardController {
                 existingReward.setDescription(rewardDTO.getDescription());
 
                 try {
+                    String imageUrl = "";
                     if(!rewardDTO.getFile().isEmpty()){
-                        String imageUrl = s3Service.uploadFileAndGetUrl(rewardDTO.getFile());
-                        existingReward.setImageUrl(imageUrl);
+                        imageUrl = s3Service.uploadFileAndGetUrl(rewardDTO.getFile(), ServiceName.REWARD, rewardDTO.getId());
+                        existingReward.setImageName(rewardDTO.getFile().getOriginalFilename());
+                    }else{
+                        existingReward.setImageName("");
                     }
 
                     Reward updatedReward = rewardService.save(existingReward);
+                    updatedReward.setImageUrl(imageUrl);
                     return new StandardResponse<>(HttpStatus.OK.value(), "Successfully updated reward", updatedReward);
                 } catch (Exception e) {
-                    // Handle the exception and return an error response
                     return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to upload file", null);
                 }
             }else{
@@ -112,8 +143,19 @@ public class RewardController {
     public StandardResponse<Void> deleteReward(@PathVariable("id") String id) {
         Optional<Reward> existingReward = rewardService.findById(id);
         if (existingReward.isPresent()) {
-            rewardService.delete(id);
-            return new StandardResponse<>(HttpStatus.OK.value(),"Successfully deleted reward with id: " + id, null);
+            Reward reward = existingReward.get();
+            rewardService.delete(reward.getId());
+
+            try{
+                if (!Objects.equals(reward.getImageName(), "")) {
+                    String objectKey = ServiceName.REWARD_CATEGORY + "/" + reward.getId() + "/";
+                    s3Service.deleteFolder(objectKey);
+                }
+                return new StandardResponse<>(HttpStatus.OK.value(),"Successfully deleted reward" + id, null);
+            }catch (Exception e){
+                return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
+            }
+
         } else {
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Reward Not Found", null);
         }

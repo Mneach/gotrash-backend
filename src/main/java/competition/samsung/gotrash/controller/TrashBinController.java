@@ -22,6 +22,9 @@ public class TrashBinController {
     @GetMapping("/trashbins")
     public StandardResponse<List<TrashBin>> getAllTrashBins() {
         List<TrashBin> trashBins = trashBinService.findAll();
+
+
+
         return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved trash bins", trashBins);
     }
 
@@ -51,7 +54,6 @@ public class TrashBinController {
             existingTrashBin.setName(trashBin.getName());
             existingTrashBin.setLatitude(trashBin.getLatitude());
             existingTrashBin.setLongitude(trashBin.getLongitude());
-            existingTrashBin.setUpdatedAt(LocalDateTime.now());
 
             // Save the updated TrashBin
             TrashBin updatedTrashBin = trashBinService.save(existingTrashBin);
