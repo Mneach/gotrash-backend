@@ -21,6 +21,7 @@ public class Reward {
     private String name;
     private BigInteger coin;
     private String description;
+    private String imageName;
     private String imageUrl;
     private String rewardCategoryId;
 

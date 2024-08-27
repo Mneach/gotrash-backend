@@ -1,5 +1,6 @@
 package competition.samsung.gotrash.controller;
 
+import competition.samsung.gotrash.constant.ServiceName;
 import competition.samsung.gotrash.dto.AddCoinDTO;
 import competition.samsung.gotrash.dto.UserDTO;
 import competition.samsung.gotrash.entity.Reward;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static competition.samsung.gotrash.entity.User.SEQUENCE_NAME;
@@ -33,9 +35,18 @@ public class UserController {
 
     @GetMapping("/users")
     public StandardResponse<List<User>> findAll(){
-
-        List<User> users =  userService.findAll();
-        return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved users", users);
+        try{
+            List<User> users =  userService.findAll();
+            for(User user : users){
+                if(!Objects.equals(user.getImageName(), "")){
+                    String presignUrl = s3Service.getPresignUrl(user.getImageName());
+                    user.setImageUrl(presignUrl);
+                }
+            }
+            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved users", users);
+        }catch (Exception e){
+            return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
+        }
     }
 
     @GetMapping("/user/{id}")
@@ -46,7 +57,17 @@ public class UserController {
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User Not Found", null);
         }
 
-        return new StandardResponse<>(HttpStatus.OK.value(), "User retrieved successfully", data.get());
+        try{
+            User user = data.get();
+
+            if(!Objects.equals(user.getImageName(), "")){
+                String presignUrl = s3Service.getPresignUrl(user.getImageName());
+                user.setImageUrl(presignUrl);
+            }
+            return new StandardResponse<>(HttpStatus.OK.value(), "User retrieved successfully", user);
+        }catch(Exception e){
+            return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
+        }
     }
 
     @PostMapping(value = "/user/add", consumes = {"multipart/form-data"})
@@ -60,16 +81,19 @@ public class UserController {
         user.setCoin(BigInteger.valueOf(0));
 
         try {
+            String imageUrl = "";
             if(!userDTO.getFile().isEmpty()){
-                String imageUrl = s3Service.uploadFileAndGetUrl(userDTO.getFile());
-                user.setImageUrl(imageUrl);
+                imageUrl = s3Service.uploadFileAndGetUrl(userDTO.getFile(), ServiceName.USER, user.getId().toString());
+                user.setImageName(userDTO.getFile().getOriginalFilename());
+            }else{
+                user.setImageName("");
             }
 
             User savedUser = userService.save(user);
+            savedUser.setImageUrl(imageUrl);
             return new StandardResponse<>(HttpStatus.OK.value(), "Successfully updated user", savedUser);
         } catch (Exception e) {
-            // Handle the exception and return an error response
-            return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to upload file", null);
+            return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
         }
     }
 
@@ -81,6 +105,7 @@ public class UserController {
         user.setUsername("dummy");
         user.setPassword("dummy123");
         user.setEmail("dummy@gmail.com");
+        user.setImageName("");
         user.setImageUrl("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTd-8kr6IGwu8T6y_Lc-0ZfAnGBFF4MvLjY-w&s");
         user.setCoin(BigInteger.valueOf(150));
 
@@ -102,16 +127,20 @@ public class UserController {
             existingUser.setUpdatedAt(LocalDateTime.now());
 
             try {
+                String imageUrl = "";
                 if(!userDTO.getFile().isEmpty()){
-                    String imageUrl = s3Service.uploadFileAndGetUrl(userDTO.getFile());
-                    existingUser.setImageUrl(imageUrl);
+                    imageUrl = s3Service.uploadFileAndGetUrl(userDTO.getFile(), ServiceName.USER, userDTO.getId().toString());
+                    existingUser.setImageName(userDTO.getFile().getOriginalFilename());
+                }else{
+                    existingUser.setImageUrl("");
                 }
 
                 User udpatedUser = userService.save(existingUser);
+                udpatedUser.setImageUrl(imageUrl);
+
                 return new StandardResponse<>(HttpStatus.OK.value(), "Successfully updated user", udpatedUser);
             } catch (Exception e) {
-                // Handle the exception and return an error response
-                return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to upload file", null);
+                return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
             }
         }else{
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User Not Found", null);
@@ -124,11 +153,21 @@ public class UserController {
         Optional<User> userOptional = userService.findById(id);
 
         if (userOptional.isPresent()) {
-            userService.delete(id);
-            return new StandardResponse<>(HttpStatus.NO_CONTENT.value(), "User successfully deleted", null);
-        } else {
-            return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User not found", null);
+            User user = userOptional.get();
+            userService.delete(user.getId());
+
+            try {
+                if (!Objects.equals(user.getImageName(), "")) {
+                    String objectKey = ServiceName.USER + "/" + user.getId() + "/";
+                    s3Service.deleteFolder(objectKey);
+                }
+                return new StandardResponse<>(HttpStatus.OK.value(), "User successfully deleted", null);
+            } catch (Exception e) {
+                return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
+            }
         }
+
+        return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User not found", null);
     }
 
     @PostMapping("/user/addCoin")
