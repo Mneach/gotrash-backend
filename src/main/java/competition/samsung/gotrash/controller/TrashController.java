@@ -52,7 +52,7 @@ public class TrashController {
             existingTrash.setCategory(trash.getCategory());
             existingTrash.setUpdatedAt(LocalDateTime.now());
 
-            Trash updatedTrash = trashService.save(trash);
+            Trash updatedTrash = trashService.save(existingTrash);
             return new StandardResponse<>(HttpStatus.OK.value(), "Successfully updated trash", updatedTrash);
         } else {
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Trash Not Found", null);

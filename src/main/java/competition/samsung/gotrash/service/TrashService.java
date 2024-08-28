@@ -10,4 +10,5 @@ public interface TrashService {
     Optional<Trash> findById(String id);
     Trash save(Trash trash);
     String delete(String id);
+    Optional<Trash> findFirstByCategory(String category);
 }

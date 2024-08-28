@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Document(collection = "users")
 @Data
@@ -24,6 +25,8 @@ public class User {
     private String imageName;
     private String imageUrl;
     private BigInteger coin;
+    private List<Trash> trashHistory;
+
 
     @CreatedDate
     private LocalDateTime createdAt;
