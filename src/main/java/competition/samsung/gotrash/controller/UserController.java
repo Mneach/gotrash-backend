@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -79,6 +80,8 @@ public class UserController {
         user.setEmail(userDTO.getEmail());
         user.setPassword(userDTO.getPassword());
         user.setCoin(BigInteger.valueOf(0));
+        user.setTrashHistory(new ArrayList<>());
+        user.setGroupId("");
 
         try {
             String imageUrl = "";
@@ -106,8 +109,10 @@ public class UserController {
         user.setPassword("dummy123");
         user.setEmail("dummy@gmail.com");
         user.setImageName("");
+        user.setGroupId("");
+        user.setTrashHistory(new ArrayList<>());
         user.setImageUrl("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTd-8kr6IGwu8T6y_Lc-0ZfAnGBFF4MvLjY-w&s");
-        user.setCoin(BigInteger.valueOf(150));
+        user.setCoin(BigInteger.valueOf(0));
 
         User data = userService.save(user);
 
@@ -173,14 +178,18 @@ public class UserController {
     @PostMapping("/user/addCoin")
     public StandardResponse<User> addCoin(@RequestBody AddCoinDTO request){
         Optional<User> userOptional = userService.findById(request.getUserId());
-        Optional<Trash> trashOptional = trashService.findById(request.getTrashId());
+        Optional<Trash> trashOptional = trashService.findFirstByCategory(request.getTrashCategory());
 
         if (userOptional.isPresent() && trashOptional.isPresent()) {
             User user = userOptional.get();
             Trash trash = trashOptional.get();
 
+            List<Trash> updateTrashHistory = user.getTrashHistory();
+            updateTrashHistory.add(trash);
             BigInteger updateCoin = user.getCoin().add(trash.getCoin());
             user.setCoin(updateCoin);
+            user.setTrashHistory(updateTrashHistory);
+
 
             User data = userService.save(user);
             return new StandardResponse<>(HttpStatus.OK.value(), "User Coin Updated", data);

@@ -18,10 +18,10 @@ public class Group {
     @Id
     private String id;
     private String groupName;
-    private String groupImage;
     private int coins;
-    private int targetReward;
+    private Reward targetReward;
     private List<User> members;
+    private Integer adminId;
 
     @CreatedDate
     private LocalDateTime createdAt;

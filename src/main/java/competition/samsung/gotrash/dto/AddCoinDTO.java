@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class AddCoinDTO {
     private int userId;
-    private String trashId;
+    private String trashCategory;
 }
