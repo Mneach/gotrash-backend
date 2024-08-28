@@ -26,7 +26,7 @@ public class User {
     private String imageUrl;
     private BigInteger coin;
     private List<Trash> trashHistory;
-
+    private String groupId;
 
     @CreatedDate
     private LocalDateTime createdAt;
