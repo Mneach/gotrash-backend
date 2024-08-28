@@ -34,4 +34,9 @@ public class TrashServiceImpl implements TrashService {
         trashRepository.deleteById(id);
         return "Successfully delete item with id : " + id;
     }
+
+    @Override
+    public Optional<Trash> findFirstByCategory(String category) {
+        return trashRepository.findFirstByCategory(category);
+    }
 }
