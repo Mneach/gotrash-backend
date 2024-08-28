@@ -4,10 +4,11 @@ import competition.samsung.gotrash.entity.Group;
 import competition.samsung.gotrash.entity.User;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface GroupService {
     List<Group> findAll();
-    Group findById(String id);
+    Optional<Group> findById(String id);
     Group save(Group group);
     String delete(String id);
     Group addMember(String groupId, User user);

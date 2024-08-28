@@ -80,6 +80,8 @@ public class UserController {
         user.setEmail(userDTO.getEmail());
         user.setPassword(userDTO.getPassword());
         user.setCoin(BigInteger.valueOf(0));
+        user.setTrashHistory(new ArrayList<>());
+        user.setGroupId("");
 
         try {
             String imageUrl = "";
@@ -107,9 +109,10 @@ public class UserController {
         user.setPassword("dummy123");
         user.setEmail("dummy@gmail.com");
         user.setImageName("");
+        user.setGroupId("");
         user.setTrashHistory(new ArrayList<>());
         user.setImageUrl("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTd-8kr6IGwu8T6y_Lc-0ZfAnGBFF4MvLjY-w&s");
-        user.setCoin(BigInteger.valueOf(150));
+        user.setCoin(BigInteger.valueOf(0));
 
         User data = userService.save(user);
 
