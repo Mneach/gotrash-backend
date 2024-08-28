@@ -37,7 +37,7 @@ public class GroupController {
 
     @GetMapping("/group/{id}")
     public StandardResponse<Group> getGroupById(@PathVariable String id) {
-        Optional<Group> group = Optional.ofNullable(groupService.findById(id));
+        Optional<Group> group = groupService.findById(id);
         if (group.isPresent()) {
             return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved group", group.get());
         } else {
@@ -71,10 +71,34 @@ public class GroupController {
         Group savedGroup = groupService.save(group);
         return new StandardResponse<>(HttpStatus.CREATED.value(), "Successfully created group", savedGroup);
     }
+    @PatchMapping("/group/update/{id}")
+    public StandardResponse<Group> udpateGroup(@PathVariable String id, @RequestBody GroupDTO groupDTO) {
+
+        Optional<Reward> reward = rewardService.findById(groupDTO.getRewardId());
+        Optional<User> user = userService.findById(groupDTO.getAdminId());
+        Optional<Group> group = groupService.findById(id);
+
+        if(group.isEmpty()){
+            return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Group Not Found", null);
+        } else if(user.isEmpty()){
+            return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User Not Found", null);
+        }else if(reward.isEmpty()){
+            return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Reward Not Found", null);
+        }
+
+        Group ExistingGroup = group.get();
+
+        ExistingGroup.setGroupName(groupDTO.getGroupName());
+        ExistingGroup.setTargetReward(reward.get());
+        ExistingGroup.setAdminId(groupDTO.getAdminId());
+
+        Group updatedGroup = groupService.save(ExistingGroup);
+        return new StandardResponse<>(HttpStatus.CREATED.value(), "Successfully created group", updatedGroup);
+    }
 
     @DeleteMapping("/group/delete/{id}")
     public StandardResponse<Void> deleteGroup(@PathVariable String id) {
-        Optional<Group> existingGroup = Optional.ofNullable(groupService.findById(id));
+        Optional<Group> existingGroup = groupService.findById(id);
         if (existingGroup.isPresent()) {
             groupService.delete(id);
             return new StandardResponse<>(HttpStatus.OK.value(), "Successfully deleted group with id: " + id, null);

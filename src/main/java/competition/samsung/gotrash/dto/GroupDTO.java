@@ -10,7 +10,6 @@ import java.util.List;
 @Data
 public class GroupDTO {
     private String groupName;
-    private int coins;
     private String rewardId;
     private Integer adminId;
 }
