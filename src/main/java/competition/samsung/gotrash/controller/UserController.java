@@ -3,14 +3,15 @@ package competition.samsung.gotrash.controller;
 import competition.samsung.gotrash.constant.ServiceName;
 import competition.samsung.gotrash.dto.AddCoinDTO;
 import competition.samsung.gotrash.dto.UserDTO;
+import competition.samsung.gotrash.entity.Group;
 import competition.samsung.gotrash.entity.Reward;
 import competition.samsung.gotrash.entity.Trash;
 import competition.samsung.gotrash.entity.User;
+import competition.samsung.gotrash.factory.UserResponseFactory;
+import competition.samsung.gotrash.repository.GroupRepository;
 import competition.samsung.gotrash.response.StandardResponse;
-import competition.samsung.gotrash.service.S3Service;
-import competition.samsung.gotrash.service.SequenceGeneratorService;
-import competition.samsung.gotrash.service.TrashService;
-import competition.samsung.gotrash.service.UserService;
+import competition.samsung.gotrash.response.UserResponse;
+import competition.samsung.gotrash.service.*;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -32,26 +33,37 @@ public class UserController {
     private UserService userService;
     private S3Service s3Service;
     private TrashService trashService;
+    private GroupService groupService;
     private SequenceGeneratorService sequenceGeneratorService;
 
     @GetMapping("/users")
-    public StandardResponse<List<User>> findAll(){
+    public StandardResponse<List<UserResponse>> findAll(){
         try{
+            List<UserResponse> userResponses = new ArrayList<>();
+
             List<User> users =  userService.findAll();
             for(User user : users){
                 if(!Objects.equals(user.getImageName(), "")){
                     String presignUrl = s3Service.getPresignUrl(user.getImageName());
                     user.setImageUrl(presignUrl);
                 }
+
+                Optional<Group> group = groupService.findById(user.getGroupId());
+
+                if(group.isPresent()){
+                    userResponses.add(UserResponseFactory.createUserResponse(user, group.get()));
+                }else{
+                    userResponses.add(UserResponseFactory.createUserResponse(user, null));
+                }
             }
-            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved users", users);
+            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved users", userResponses);
         }catch (Exception e){
             return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
         }
     }
 
     @GetMapping("/user/{id}")
-    public StandardResponse<User> findById(@PathVariable Integer id){
+    public StandardResponse<UserResponse> findById(@PathVariable Integer id){
         Optional<User> data = userService.findById(id);
 
         if(data.isEmpty()){
@@ -65,7 +77,17 @@ public class UserController {
                 String presignUrl = s3Service.getPresignUrl(user.getImageName());
                 user.setImageUrl(presignUrl);
             }
-            return new StandardResponse<>(HttpStatus.OK.value(), "User retrieved successfully", user);
+
+            Optional<Group> group = groupService.findById(user.getGroupId());
+            UserResponse userResponses;
+
+            if(group.isPresent()){
+                userResponses = UserResponseFactory.createUserResponse(user, group.get());
+            }else{
+                userResponses = UserResponseFactory.createUserResponse(user, null);
+            }
+
+            return new StandardResponse<>(HttpStatus.OK.value(), "User retrieved successfully", userResponses);
         }catch(Exception e){
             return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
         }
