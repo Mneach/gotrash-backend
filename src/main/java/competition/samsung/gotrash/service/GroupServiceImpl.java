@@ -35,26 +35,4 @@ public class GroupServiceImpl implements GroupService{
         groupRepository.deleteById(id);
         return "Successfully delete group with id " + id;
     }
-
-    @Override
-    public Group addMember(String groupId, User user) {
-        Optional<Group> optionalGroup = groupRepository.findById(groupId);
-        if (optionalGroup.isPresent()) {
-            Group group = optionalGroup.get();
-            group.getMembers().add(user);
-            return groupRepository.save(group);
-        }
-        return null;
-    }
-
-    @Override
-    public Group removeMember(String groupId, User user) {
-        Optional<Group> optionalGroup = groupRepository.findById(groupId);
-        if (optionalGroup.isPresent()) {
-            Group group = optionalGroup.get();
-            group.getMembers().remove(user);
-            return groupRepository.save(group);
-        }
-        return null;
-    }
 }

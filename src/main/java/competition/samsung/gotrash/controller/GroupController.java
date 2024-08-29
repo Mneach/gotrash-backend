@@ -15,10 +15,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -57,11 +54,21 @@ public class GroupController {
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Reward Not Found", null);
         }
 
+        if(!Objects.equals(user.get().getGroupId(), "")){
+            return new StandardResponse<>(HttpStatus.CONFLICT.value(), "you can only have 1 group", null);
+        }
+
         Group group = new Group();
+        String groupId = UUID.randomUUID().toString();
+
+        // update user group id
+        user.get().setGroupId(groupId);
+        userService.save(user.get());
+
         List<User> members = new ArrayList<>();
         members.add(user.get());
 
-        group.setId(UUID.randomUUID().toString());
+        group.setId(groupId);
         group.setMembers(members);
         group.setGroupName(groupDTO.getGroupName());
         group.setTargetReward(reward.get());
@@ -100,6 +107,12 @@ public class GroupController {
     public StandardResponse<Void> deleteGroup(@PathVariable String id) {
         Optional<Group> existingGroup = groupService.findById(id);
         if (existingGroup.isPresent()) {
+
+            for(User user : existingGroup.get().getMembers()){
+                user.setGroupId("");
+                userService.save(user);
+            }
+
             groupService.delete(id);
             return new StandardResponse<>(HttpStatus.OK.value(), "Successfully deleted group with id: " + id, null);
         } else {
@@ -111,38 +124,68 @@ public class GroupController {
     public StandardResponse<Group> addMemberToGroup(@RequestBody AddMemberDTO addMemberDTO) {
 
         Optional<User> user = userService.findById(addMemberDTO.getUserId());
+        Optional<Group> group = groupService.findById(addMemberDTO.getGroupId());
 
         if(user.isEmpty()){
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User Not Found", null);
         }
 
-        Group updatedGroup = groupService.addMember(addMemberDTO.getGroupId(), user.get());
-        if (updatedGroup != null) {
-            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully added member to group", updatedGroup);
-        } else {
+        if(group.isEmpty()){
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Group Not Found", null);
         }
+
+        if(Objects.equals(user.get().getGroupId(), group.get().getId())){
+            return new StandardResponse<>(HttpStatus.CONFLICT.value(), "User already join this group", null);
+        }else if(!Objects.equals(user.get().getGroupId(), "")){
+            return new StandardResponse<>(HttpStatus.CONFLICT.value(), "User already join another group", null);
+        }
+
+        // update user group id
+        user.get().setGroupId(addMemberDTO.getGroupId());
+        userService.save(user.get());
+
+        // update group member
+        group.get().getMembers().add(user.get());
+        Group updatedGroup = groupService.save(group.get());
+
+        return new StandardResponse<>(HttpStatus.OK.value(), "Successfully added member to group", updatedGroup);
     }
 
     @PostMapping("/group/remove-member")
     public StandardResponse<Group> removeMemberFromGroup(@RequestBody RemoveMemberDTO removeMemberDTO) {
         Optional<User> user = userService.findById(removeMemberDTO.getUserId());
+        Optional<Group> group = groupService.findById(removeMemberDTO.getGroupId());
 
         if(user.isEmpty()){
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User Not Found", null);
         }
 
-        Group updatedGroup = groupService.removeMember(removeMemberDTO.getGroupId(), user.get());
-        if (updatedGroup != null) {
-            if(updatedGroup.getMembers().isEmpty()){
-                groupService.delete(updatedGroup.getId());
-                return new StandardResponse<>(HttpStatus.OK.value(), "Successfully delete group", updatedGroup);
-            }else{
-                return new StandardResponse<>(HttpStatus.OK.value(), "Successfully removed member from group", updatedGroup);
-            }
-
-        } else {
+        if(group.isEmpty()){
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Group Not Found", null);
         }
+
+        // update group member
+        List<User> members  = group.get().getMembers();
+
+        if(members.remove(user.get())){
+            // update user group id
+            user.get().setGroupId("");
+            userService.save(user.get());
+        }
+
+        for(User temp : members){
+            System.out.println(temp.getId());
+        }
+
+        group.get().setMembers(members);
+        Group updatedGroup = groupService.save(group.get());
+
+        if(updatedGroup.getMembers().isEmpty()){
+            groupService.delete(updatedGroup.getId());
+            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully delete group", updatedGroup);
+        }else{
+            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully removed member from group", updatedGroup);
+        }
+
     }
 }
