@@ -85,7 +85,7 @@ public class RewardCategoryController {
             savedCategory.setImageUrl(imageUrl);
             return new StandardResponse<>(HttpStatus.CREATED.value(), "Successfully created reward category", savedCategory);
         } catch (Exception e) {
-            return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to upload file", null);
+            return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
         }
     }
 
