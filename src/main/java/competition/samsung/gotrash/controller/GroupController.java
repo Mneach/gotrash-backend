@@ -15,10 +15,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -55,6 +52,10 @@ public class GroupController {
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User Not Found", null);
         }else if(reward.isEmpty()){
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Reward Not Found", null);
+        }
+
+        if(!Objects.equals(user.get().getGroupId(), "")){
+            return new StandardResponse<>(HttpStatus.CONFLICT.value(), "you can only have 1 group", null);
         }
 
         Group group = new Group();
@@ -131,6 +132,12 @@ public class GroupController {
 
         if(group.isEmpty()){
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Group Not Found", null);
+        }
+
+        if(Objects.equals(user.get().getGroupId(), group.get().getId())){
+            return new StandardResponse<>(HttpStatus.CONFLICT.value(), "User already join this group", null);
+        }else if(!Objects.equals(user.get().getGroupId(), "")){
+            return new StandardResponse<>(HttpStatus.CONFLICT.value(), "User already join another group", null);
         }
 
         // update user group id
