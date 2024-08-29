@@ -11,6 +11,4 @@ public interface GroupService {
     Optional<Group> findById(String id);
     Group save(Group group);
     String delete(String id);
-    Group addMember(String groupId, User user);
-    Group removeMember(String groupId, User user);
 }
