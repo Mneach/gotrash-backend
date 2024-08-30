@@ -23,9 +23,7 @@ import java.util.List;
 public class UserResponse {
     private Integer id;
     private String username;
-    private String password;
     private String email;
-    private String imageName;
     private String imageUrl;
     private BigInteger coin;
     private List<Trash> trashHistory;

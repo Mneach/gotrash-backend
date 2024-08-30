@@ -8,6 +8,7 @@ import competition.samsung.gotrash.response.StandardResponse;
 import competition.samsung.gotrash.service.RewardCategoryService;
 import competition.samsung.gotrash.service.RewardService;
 import competition.samsung.gotrash.service.S3Service;
+import competition.samsung.gotrash.utils.S3BucketUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +34,8 @@ public class RewardCategoryController {
         try{
             for(RewardCategory rewardCategory : rewardCategories){
                 if(!Objects.equals(rewardCategory.getImageName(), "")){
-                    String presignUrl = s3Service.getPresignUrl(rewardCategory.getImageName());
+                    String objectKeys = S3BucketUtil.createObjectKey(ServiceName.REWARD_CATEGORY, rewardCategory.getId(), rewardCategory.getImageName());
+                    String presignUrl = s3Service.getPresignUrl(objectKeys);
                     rewardCategory.setImageUrl(presignUrl);
                 }
             }
@@ -57,7 +59,8 @@ public class RewardCategoryController {
             RewardCategory rewardCategory = data.get();
 
             if(!Objects.equals(rewardCategory.getImageName(), "")){
-                String presignUrl = s3Service.getPresignUrl(rewardCategory.getImageName());
+                String objectKeys = S3BucketUtil.createObjectKey(ServiceName.REWARD_CATEGORY, rewardCategory.getId(), rewardCategory.getImageName());
+                String presignUrl = s3Service.getPresignUrl(objectKeys);
                 rewardCategory.setImageUrl(presignUrl);
             }
             return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved reward category", rewardCategory);
@@ -75,7 +78,7 @@ public class RewardCategoryController {
         try {
             String imageUrl = "";
             if (!rewardCategoryDTO.getFile().isEmpty()) {
-                imageUrl = s3Service.uploadFileAndGetUrl(rewardCategoryDTO.getFile(), "RewardCategory", rewardCategory.getId());
+                imageUrl = s3Service.uploadFileAndGetUrl(rewardCategoryDTO.getFile(), ServiceName.REWARD_CATEGORY, rewardCategory.getId());
                 rewardCategory.setImageName(rewardCategoryDTO.getFile().getOriginalFilename());
             }else{
                 rewardCategory.setImageName("");
@@ -100,7 +103,7 @@ public class RewardCategoryController {
             try {
                 String imageUrl = "";
                 if(!rewardCategoryDTO.getFile().isEmpty()){
-                    imageUrl = s3Service.uploadFileAndGetUrl(rewardCategoryDTO.getFile(), ServiceName.REWARD, rewardCategory.getId());
+                    imageUrl = s3Service.uploadFileAndGetUrl(rewardCategoryDTO.getFile(), ServiceName.REWARD_CATEGORY, rewardCategory.getId());
                     rewardCategory.setImageName(rewardCategoryDTO.getFile().getOriginalFilename());
                 }else{
                     rewardCategory.setImageName("");
