@@ -9,6 +9,7 @@ import competition.samsung.gotrash.response.StandardResponse;
 import competition.samsung.gotrash.service.RewardCategoryService;
 import competition.samsung.gotrash.service.RewardServiceImpl;
 import competition.samsung.gotrash.service.S3Service;
+import competition.samsung.gotrash.utils.S3BucketUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +37,8 @@ public class RewardController {
         try{
             for(Reward reward : rewards){
                 if(!Objects.equals(reward.getImageName(), "")){
-                    String presignUrl = s3Service.getPresignUrl(reward.getImageName());
+                    String objectKeys = S3BucketUtil.createObjectKey(ServiceName.REWARD, reward.getId(), reward.getImageName());
+                    String presignUrl = s3Service.getPresignUrl(objectKeys);
                     reward.setImageUrl(presignUrl);
                 }
             }
@@ -57,7 +59,8 @@ public class RewardController {
             Reward reward = data.get();
 
             if(!Objects.equals(reward.getImageName(), "")){
-                String presignUrl = s3Service.getPresignUrl(reward.getImageName());
+                String objectKeys = S3BucketUtil.createObjectKey(ServiceName.REWARD, reward.getId(), reward.getImageName());
+                String presignUrl = s3Service.getPresignUrl(objectKeys);
                 reward.setImageUrl(presignUrl);
             }
             return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved reward" , reward);
@@ -83,7 +86,7 @@ public class RewardController {
 
                 String imageUrl = "";
                 if(!rewardDTO.getFile().isEmpty()){
-                    imageUrl = s3Service.uploadFileAndGetUrl(rewardDTO.getFile(), ServiceName.REWARD, rewardDTO.getId());
+                    imageUrl = s3Service.uploadFileAndGetUrl(rewardDTO.getFile(), ServiceName.REWARD, reward.getId());
                     reward.setImageName(rewardDTO.getFile().getOriginalFilename());
                 }else{
                     reward.setImageName("");
@@ -118,7 +121,7 @@ public class RewardController {
                 try {
                     String imageUrl = "";
                     if(!rewardDTO.getFile().isEmpty()){
-                        imageUrl = s3Service.uploadFileAndGetUrl(rewardDTO.getFile(), ServiceName.REWARD, rewardDTO.getId());
+                        imageUrl = s3Service.uploadFileAndGetUrl(rewardDTO.getFile(), ServiceName.REWARD, existingReward.getId());
                         existingReward.setImageName(rewardDTO.getFile().getOriginalFilename());
                     }else{
                         existingReward.setImageName("");
