@@ -1,5 +1,6 @@
 package competition.samsung.gotrash.service;
 
+import competition.samsung.gotrash.utils.S3BucketUtil;
 import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +33,11 @@ public class S3ServiceImpl implements S3Service{
     @Autowired
     private S3Presigner s3Presigner;
 
-    public String getPresignUrl(String fileName){
+    public String getPresignUrl(String ObjectKey){
+
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
-                .key(fileName)
+                .key(ObjectKey)
                 .build();
 
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
@@ -49,10 +51,10 @@ public class S3ServiceImpl implements S3Service{
 
     public String uploadFileAndGetUrl(MultipartFile file, String serviceName, String id) throws Exception {
         File fileObj = convertMultiPartFileToFile(file);
-        String fileName = serviceName + "/" + id + "/" + file.getOriginalFilename() + "_" + System.currentTimeMillis();
+        String objectKey = S3BucketUtil.createObjectKey(serviceName, id, file.getOriginalFilename());
 
-        uploadFile(fileObj,fileName);
-        return getPresignUrl(fileName);
+        uploadFile(fileObj,objectKey);
+        return getPresignUrl(objectKey);
     }
 
     public void deleteFile(String objectKey) throws Exception {

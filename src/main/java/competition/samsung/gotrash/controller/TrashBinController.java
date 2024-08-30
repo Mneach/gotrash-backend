@@ -7,6 +7,7 @@ import competition.samsung.gotrash.entity.User;
 import competition.samsung.gotrash.response.StandardResponse;
 import competition.samsung.gotrash.service.S3Service;
 import competition.samsung.gotrash.service.TrashBinServiceImpl;
+import competition.samsung.gotrash.utils.S3BucketUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +33,8 @@ public class TrashBinController {
         try{
             for(TrashBin trashBin : trashBins){
                 if(!Objects.equals(trashBin.getImageName(), "")){
-                    String presignUrl = s3Service.getPresignUrl(trashBin.getImageName());
+                    String objectKeys = S3BucketUtil.createObjectKey(ServiceName.TRASHBIN, trashBin.getId(), trashBin.getImageName());
+                    String presignUrl = s3Service.getPresignUrl(objectKeys);
                     trashBin.setImageUrl(presignUrl);
                 }
             }
@@ -53,8 +55,8 @@ public class TrashBinController {
             TrashBin trashBin = data.get();
 
             if(!Objects.equals(trashBin.getImageName(), "")){
-                String presignUrl = s3Service.getPresignUrl(trashBin.getImageName());
-                trashBin.setImageUrl(presignUrl);
+                String objectKeys = S3BucketUtil.createObjectKey(ServiceName.TRASHBIN, trashBin.getId(), trashBin.getImageName());
+                trashBin.setImageUrl(objectKeys);
             }
 
             return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved trash bin", trashBin);

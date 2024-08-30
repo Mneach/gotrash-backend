@@ -12,6 +12,7 @@ import competition.samsung.gotrash.repository.GroupRepository;
 import competition.samsung.gotrash.response.StandardResponse;
 import competition.samsung.gotrash.response.UserResponse;
 import competition.samsung.gotrash.service.*;
+import competition.samsung.gotrash.utils.S3BucketUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -44,7 +45,8 @@ public class UserController {
             List<User> users =  userService.findAll();
             for(User user : users){
                 if(!Objects.equals(user.getImageName(), "")){
-                    String presignUrl = s3Service.getPresignUrl(user.getImageName());
+                    String objectKeys = S3BucketUtil.createObjectKey(ServiceName.USER, user.getId().toString(), user.getImageName());
+                    String presignUrl = s3Service.getPresignUrl(objectKeys);
                     user.setImageUrl(presignUrl);
                 }
 
@@ -74,8 +76,8 @@ public class UserController {
             User user = data.get();
 
             if(!Objects.equals(user.getImageName(), "")){
-                String presignUrl = s3Service.getPresignUrl(user.getImageName());
-                user.setImageUrl(presignUrl);
+                String objectKeys = S3BucketUtil.createObjectKey(ServiceName.USER, user.getId().toString(), user.getImageName());
+                user.setImageUrl(objectKeys);
             }
 
             Optional<Group> group = groupService.findById(user.getGroupId());
