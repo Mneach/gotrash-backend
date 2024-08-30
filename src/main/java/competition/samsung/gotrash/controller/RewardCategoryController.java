@@ -32,13 +32,6 @@ public class RewardCategoryController {
         List<RewardCategory> rewardCategories = rewardCategoryService.findAll();
 
         try{
-            for(RewardCategory rewardCategory : rewardCategories){
-                if(!Objects.equals(rewardCategory.getImageName(), "")){
-                    String objectKeys = S3BucketUtil.createObjectKey(ServiceName.REWARD_CATEGORY, rewardCategory.getId(), rewardCategory.getImageName());
-                    String presignUrl = s3Service.getPresignUrl(objectKeys);
-                    rewardCategory.setImageUrl(presignUrl);
-                }
-            }
             return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved reward categories", rewardCategories);
         }catch(Exception e){
             return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
@@ -57,12 +50,6 @@ public class RewardCategoryController {
 
         try{
             RewardCategory rewardCategory = data.get();
-
-            if(!Objects.equals(rewardCategory.getImageName(), "")){
-                String objectKeys = S3BucketUtil.createObjectKey(ServiceName.REWARD_CATEGORY, rewardCategory.getId(), rewardCategory.getImageName());
-                String presignUrl = s3Service.getPresignUrl(objectKeys);
-                rewardCategory.setImageUrl(presignUrl);
-            }
             return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved reward category", rewardCategory);
         }catch(Exception e){
             return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
@@ -76,16 +63,7 @@ public class RewardCategoryController {
         rewardCategory.setName(rewardCategoryDTO.getName());
 
         try {
-            String imageUrl = "";
-            if (!rewardCategoryDTO.getFile().isEmpty()) {
-                imageUrl = s3Service.uploadFileAndGetUrl(rewardCategoryDTO.getFile(), ServiceName.REWARD_CATEGORY, rewardCategory.getId());
-                rewardCategory.setImageName(rewardCategoryDTO.getFile().getOriginalFilename());
-            }else{
-                rewardCategory.setImageName("");
-            }
-
             RewardCategory savedCategory = rewardCategoryService.save(rewardCategory);
-            savedCategory.setImageUrl(imageUrl);
             return new StandardResponse<>(HttpStatus.CREATED.value(), "Successfully created reward category", savedCategory);
         } catch (Exception e) {
             return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
@@ -99,22 +77,8 @@ public class RewardCategoryController {
         if (existingCategory.isPresent()) {
             RewardCategory rewardCategory = existingCategory.get();
             rewardCategory.setName(rewardCategoryDTO.getName());
-
-            try {
-                String imageUrl = "";
-                if(!rewardCategoryDTO.getFile().isEmpty()){
-                    imageUrl = s3Service.uploadFileAndGetUrl(rewardCategoryDTO.getFile(), ServiceName.REWARD_CATEGORY, rewardCategory.getId());
-                    rewardCategory.setImageName(rewardCategoryDTO.getFile().getOriginalFilename());
-                }else{
-                    rewardCategory.setImageName("");
-                }
-
-                RewardCategory updatedCategory = rewardCategoryService.save(rewardCategory);
-                updatedCategory.setImageUrl(imageUrl);
-                return new StandardResponse<>(HttpStatus.OK.value(), "Successfully updated reward category", updatedCategory);
-            } catch (Exception e) {
-                return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to upload file", null);
-            }
+            RewardCategory updatedCategory = rewardCategoryService.save(rewardCategory);
+            return new StandardResponse<>(HttpStatus.OK.value(), "Successfully updated reward category", updatedCategory);
         } else {
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "Reward category not found", null);
         }
@@ -128,10 +92,6 @@ public class RewardCategoryController {
             rewardCategoryService.delete(rewardCategory.getId());
 
             try{
-                if(!Objects.equals(rewardCategory.getImageName(), "")){
-                    String objectKey = ServiceName.REWARD + "/" + rewardCategory.getId() + "/";
-                    s3Service.deleteFolder(objectKey);
-                }
                 rewardCategoryService.delete(id);
                 return new StandardResponse<>(HttpStatus.OK.value(), "Successfully deleted reward category with id: " + id, null);
             }catch (Exception e){

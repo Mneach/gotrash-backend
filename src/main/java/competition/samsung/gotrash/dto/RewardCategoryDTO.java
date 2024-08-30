@@ -9,5 +9,4 @@ import java.math.BigInteger;
 public class RewardCategoryDTO {
     private String id;
     private String name;
-    private MultipartFile file;
 }

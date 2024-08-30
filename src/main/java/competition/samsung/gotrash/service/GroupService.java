@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface GroupService {
-    List<Group> findAll();
-    Optional<Group> findById(String id);
+    List<Group> findAll() throws Exception;
+    Optional<Group> findById(String id) throws Exception;
     Group save(Group group);
     String delete(String id);
 }
