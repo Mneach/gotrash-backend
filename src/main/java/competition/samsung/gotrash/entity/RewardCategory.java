@@ -20,8 +20,6 @@ public class RewardCategory {
     @Id
     private String id;
     private String name;
-    private String imageName;
-    private String imageUrl;
 
     @DBRef(lazy = false)
     private List<Reward> rewards;
