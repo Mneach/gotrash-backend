@@ -56,7 +56,8 @@ public class TrashBinController {
 
             if(!Objects.equals(trashBin.getImageName(), "")){
                 String objectKeys = S3BucketUtil.createObjectKey(ServiceName.TRASHBIN, trashBin.getId(), trashBin.getImageName());
-                trashBin.setImageUrl(objectKeys);
+                String presignUrl = s3Service.getPresignUrl(objectKeys);
+                trashBin.setImageUrl(presignUrl);
             }
 
             return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved trash bin", trashBin);
@@ -79,10 +80,10 @@ public class TrashBinController {
 
         try {
             String imageUrl = "";
-            if(!trashBinDTO.getFile().isEmpty()){
+            if(trashBinDTO.getFile() != null && !trashBinDTO.getFile().isEmpty()){
                 imageUrl = s3Service.uploadFileAndGetUrl(trashBinDTO.getFile(), ServiceName.TRASHBIN, trashBin.getId());
                 trashBin.setImageName(trashBinDTO.getFile().getOriginalFilename());
-            }else{
+            }else if(trashBinDTO.getFile() != null && trashBinDTO.getFile().isEmpty()){
                 trashBin.setImageName("");
             }
 
@@ -107,11 +108,14 @@ public class TrashBinController {
 
             try {
                 String imageUrl = "";
-                if(!trashBinDTO.getFile().isEmpty()){
-                    imageUrl = s3Service.uploadFileAndGetUrl(trashBinDTO.getFile(), ServiceName.TRASHBIN, trashBinDTO.getId().toString());
+                if(trashBinDTO.getFile() != null && !trashBinDTO.getFile().isEmpty()){
+                    imageUrl = s3Service.uploadFileAndGetUrl(trashBinDTO.getFile(), ServiceName.TRASHBIN, trashBinDTO.getId());
                     existingTrashBin.setImageName(trashBinDTO.getFile().getOriginalFilename());
-                }else{
-                    existingTrashBin.setImageUrl("");
+                }else if(trashBinDTO.getFile() != null && trashBinDTO.getFile().isEmpty()){
+                    existingTrashBin.setImageName("");
+                }else if(trashBinDTO.getFile() == null && !Objects.equals(existingTrashBin.getImageName(), "")){
+                    String objectKeys = S3BucketUtil.createObjectKey(ServiceName.USER, existingTrashBin.getId(), existingTrashBin.getImageName());
+                    imageUrl = s3Service.getPresignUrl(objectKeys);
                 }
 
                 TrashBin updatedTrashBin = trashBinService.save(existingTrashBin);
