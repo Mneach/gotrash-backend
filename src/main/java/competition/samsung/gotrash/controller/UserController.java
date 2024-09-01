@@ -77,7 +77,8 @@ public class UserController {
 
             if(!Objects.equals(user.getImageName(), "")){
                 String objectKeys = S3BucketUtil.createObjectKey(ServiceName.USER, user.getId().toString(), user.getImageName());
-                user.setImageUrl(objectKeys);
+                String presignUrl = s3Service.getPresignUrl(objectKeys);
+                user.setImageUrl(presignUrl);
             }
 
             Optional<Group> group = groupService.findById(user.getGroupId());
@@ -106,13 +107,14 @@ public class UserController {
         user.setCoin(BigInteger.valueOf(0));
         user.setTrashHistory(new ArrayList<>());
         user.setGroupId("");
+        user.setPhoneNumber(userDTO.getPhoneNumber());
 
         try {
             String imageUrl = "";
-            if(!userDTO.getFile().isEmpty()){
+            if(userDTO.getFile() != null && !userDTO.getFile().isEmpty()){
                 imageUrl = s3Service.uploadFileAndGetUrl(userDTO.getFile(), ServiceName.USER, user.getId().toString());
                 user.setImageName(userDTO.getFile().getOriginalFilename());
-            }else{
+            }else if(userDTO.getFile() != null && userDTO.getFile().isEmpty()){
                 user.setImageName("");
             }
 
@@ -152,16 +154,19 @@ public class UserController {
             existingUser.setUsername(userDTO.getUsername());
             existingUser.setPassword(userDTO.getPassword());
             existingUser.setEmail(userDTO.getEmail());
-            existingUser.setCoin(userDTO.getCoin());
             existingUser.setUpdatedAt(LocalDateTime.now());
+            existingUser.setPhoneNumber(userDTO.getPhoneNumber());
 
             try {
                 String imageUrl = "";
-                if(!userDTO.getFile().isEmpty()){
+                if(userDTO.getFile() != null && !userDTO.getFile().isEmpty()){
                     imageUrl = s3Service.uploadFileAndGetUrl(userDTO.getFile(), ServiceName.USER, userDTO.getId().toString());
                     existingUser.setImageName(userDTO.getFile().getOriginalFilename());
-                }else{
-                    existingUser.setImageUrl("");
+                }else if(userDTO.getFile() != null && userDTO.getFile().isEmpty()){
+                    existingUser.setImageName("");
+                }else if(userDTO.getFile() == null && !Objects.equals(existingUser.getImageName(), "")){
+                    String objectKeys = S3BucketUtil.createObjectKey(ServiceName.USER, existingUser.getId().toString(), existingUser.getImageName());
+                    imageUrl = s3Service.getPresignUrl(objectKeys);
                 }
 
                 User udpatedUser = userService.save(existingUser);

@@ -11,6 +11,7 @@ public class UserDTO {
     private String username;
     private String password;
     private String email;
+    private String phoneNumber;
     private MultipartFile file;
     private BigInteger coin;
 }
