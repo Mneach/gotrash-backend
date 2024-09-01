@@ -25,6 +25,7 @@ public class UserResponse {
     private String username;
     private String email;
     private String imageUrl;
+    private String phoneNumber;
     private BigInteger coin;
     private List<Trash> trashHistory;
     private Group group;
