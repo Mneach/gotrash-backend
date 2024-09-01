@@ -17,6 +17,7 @@ public class UserResponseFactory {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .imageUrl(user.getImageUrl())
+                .phoneNumber(user.getPhoneNumber())
                 .coin(user.getCoin())
                 .trashHistory(user.getTrashHistory())
                 .group(group)
