@@ -85,10 +85,10 @@ public class RewardController {
             try {
 
                 String imageUrl = "";
-                if(!rewardDTO.getFile().isEmpty()){
+                if(rewardDTO.getFile() != null && !rewardDTO.getFile().isEmpty()){
                     imageUrl = s3Service.uploadFileAndGetUrl(rewardDTO.getFile(), ServiceName.REWARD, reward.getId());
                     reward.setImageName(rewardDTO.getFile().getOriginalFilename());
-                }else{
+                }else if(rewardDTO.getFile() != null && rewardDTO.getFile().isEmpty()){
                     reward.setImageName("");
                 }
 
@@ -120,11 +120,14 @@ public class RewardController {
 
                 try {
                     String imageUrl = "";
-                    if(!rewardDTO.getFile().isEmpty()){
+                    if(rewardDTO.getFile() != null && !rewardDTO.getFile().isEmpty()){
                         imageUrl = s3Service.uploadFileAndGetUrl(rewardDTO.getFile(), ServiceName.REWARD, existingReward.getId());
                         existingReward.setImageName(rewardDTO.getFile().getOriginalFilename());
-                    }else{
+                    }else if(rewardDTO.getFile() != null && rewardDTO.getFile().isEmpty()){
                         existingReward.setImageName("");
+                    }else if(rewardDTO.getFile() == null && !Objects.equals(existingReward.getImageName(), "")){
+                        String objectKeys = S3BucketUtil.createObjectKey(ServiceName.USER, existingReward.getId(), existingReward.getImageName());
+                        imageUrl = s3Service.getPresignUrl(objectKeys);
                     }
 
                     Reward updatedReward = rewardService.save(existingReward);
