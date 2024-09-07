@@ -9,6 +9,7 @@ import competition.samsung.gotrash.utils.S3BucketUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -55,6 +56,24 @@ public class GroupServiceImpl implements GroupService{
         }
 
         return Optional.of(group);
+    }
+
+    public Optional<Group> getGroupByIdAndSortMembers(String id) {
+        Optional<Group> optionalGroup = groupRepository.findById(id);
+
+        if(optionalGroup.isEmpty()){
+            return optionalGroup;
+        }
+
+        Group group = optionalGroup.get();
+        // Sort members by rating in descending order
+        group.getMembers().sort(Comparator.comparing(User::getRating).reversed());
+
+        return Optional.of(group);
+    }
+
+    public List<Group> findGroupsByUserId(Integer id) {
+        return groupRepository.findGroupsByUserId(id);
     }
 
     @Override

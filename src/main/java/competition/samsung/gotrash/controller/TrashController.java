@@ -51,6 +51,7 @@ public class TrashController {
             existingTrash.setCoin(trash.getCoin());
             existingTrash.setCategory(trash.getCategory());
             existingTrash.setUpdatedAt(LocalDateTime.now());
+            existingTrash.setRating(trash.getRating());
 
             Trash updatedTrash = trashService.save(existingTrash);
             return new StandardResponse<>(HttpStatus.OK.value(), "Successfully updated trash", updatedTrash);

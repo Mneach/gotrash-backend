@@ -28,6 +28,7 @@ public class User {
     private BigInteger coin;
     private List<Trash> trashHistory;
     private String groupId;
+    private BigInteger rating;
 
     @CreatedDate
     private LocalDateTime createdAt;

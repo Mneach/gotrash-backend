@@ -27,6 +27,7 @@ public class UserResponse {
     private String imageUrl;
     private String phoneNumber;
     private BigInteger coin;
+    private BigInteger rating;
     private List<Trash> trashHistory;
     private Group group;
     private LocalDateTime createdAt;
