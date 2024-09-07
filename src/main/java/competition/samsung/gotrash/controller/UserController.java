@@ -50,7 +50,7 @@ public class UserController {
                     user.setImageUrl(presignUrl);
                 }
 
-                Optional<Group> group = groupService.findById(user.getGroupId());
+                Optional<Group> group = groupService.getGroupByIdAndSortMembers(user.getGroupId());
 
                 if(group.isPresent()){
                     userResponses.add(UserResponseFactory.createUserResponse(user, group.get()));
@@ -81,7 +81,7 @@ public class UserController {
                 user.setImageUrl(presignUrl);
             }
 
-            Optional<Group> group = groupService.findById(user.getGroupId());
+            Optional<Group> group = groupService.getGroupByIdAndSortMembers(user.getGroupId());
             UserResponse userResponses;
 
             if(group.isPresent()){
@@ -108,6 +108,7 @@ public class UserController {
         user.setTrashHistory(new ArrayList<>());
         user.setGroupId("");
         user.setPhoneNumber(userDTO.getPhoneNumber());
+        user.setRating(BigInteger.valueOf(0));
 
         try {
             String imageUrl = "";
@@ -139,6 +140,7 @@ public class UserController {
         user.setTrashHistory(new ArrayList<>());
         user.setImageUrl("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTd-8kr6IGwu8T6y_Lc-0ZfAnGBFF4MvLjY-w&s");
         user.setCoin(BigInteger.valueOf(0));
+        user.setRating(BigInteger.valueOf(0));
 
         User data = userService.save(user);
 
@@ -210,18 +212,41 @@ public class UserController {
         Optional<Trash> trashOptional = trashService.findFirstByCategory(request.getTrashCategory());
 
         if (userOptional.isPresent() && trashOptional.isPresent()) {
-            User user = userOptional.get();
-            Trash trash = trashOptional.get();
+            try{
+                User user = userOptional.get();
+                Trash trash = trashOptional.get();
 
-            List<Trash> updateTrashHistory = user.getTrashHistory();
-            updateTrashHistory.add(trash);
-            BigInteger updateCoin = user.getCoin().add(trash.getCoin());
-            user.setCoin(updateCoin);
-            user.setTrashHistory(updateTrashHistory);
+                List<Trash> updateTrashHistory = user.getTrashHistory();
+                updateTrashHistory.add(trash);
+                BigInteger updateCoin = user.getCoin().add(trash.getCoin());
+                BigInteger updateRating = user.getRating().add(trash.getRating());
+                user.setCoin(updateCoin);
+                user.setTrashHistory(updateTrashHistory);
+                user.setRating(updateRating);
 
+                Optional<Group> optionalGroup = groupService.findById(user.getGroupId());
 
-            User data = userService.save(user);
-            return new StandardResponse<>(HttpStatus.OK.value(), "User Coin Updated", data);
+                if(optionalGroup.isPresent()){
+                    Group group = optionalGroup.get();
+
+                    boolean updated = false;
+                    for(User member : group.getMembers()){
+                        if(Objects.equals(member.getId(), user.getId())){
+                            member.setRating(user.getRating());
+                            updated = true;
+                        }
+                    }
+
+                    if(updated){
+                        groupService.save(group);
+                    }
+                }
+
+                User data = userService.save(user);
+                return new StandardResponse<>(HttpStatus.OK.value(), "User Coin Updated", data);
+            }catch (Exception e){
+                return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
+            }
         }else{
             String message = userOptional.isEmpty() ? "User Not Found" : "Item Not Found";
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), message, null);
