@@ -21,6 +21,7 @@ public class Trash {
     private String name;
     private String category;
     private BigInteger coin;
+    private BigInteger rating;
 
     @CreatedDate
     private LocalDateTime createdAt;

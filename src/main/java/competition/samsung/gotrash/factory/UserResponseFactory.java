@@ -19,6 +19,7 @@ public class UserResponseFactory {
                 .imageUrl(user.getImageUrl())
                 .phoneNumber(user.getPhoneNumber())
                 .coin(user.getCoin())
+                .rating(user.getRating())
                 .trashHistory(user.getTrashHistory())
                 .group(group)
                 .createdAt(user.getCreatedAt())
