@@ -1,9 +1,8 @@
 package competition.samsung.gotrash.controller;
 
 import competition.samsung.gotrash.entity.Notification;
-import competition.samsung.gotrash.entity.User;
 import competition.samsung.gotrash.response.StandardResponse;
-import competition.samsung.gotrash.service.NotificationServiceImpl;
+import competition.samsung.gotrash.service.implement.NotificationServiceImpl;
 import competition.samsung.gotrash.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;

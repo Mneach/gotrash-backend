@@ -1,5 +1,6 @@
-package competition.samsung.gotrash.service;
+package competition.samsung.gotrash.service.implement;
 
+import competition.samsung.gotrash.service.S3Service;
 import competition.samsung.gotrash.utils.S3BucketUtil;
 import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,7 @@ import java.util.ArrayList;
 
 @Service
 @Slf4j
-public class S3ServiceImpl implements S3Service{
+public class S3ServiceImpl implements S3Service {
 
     @Value("${aws.s3.bucket.name}")
     private String bucketName;

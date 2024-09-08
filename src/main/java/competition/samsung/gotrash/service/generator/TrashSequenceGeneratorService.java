@@ -1,6 +1,6 @@
-package competition.samsung.gotrash.service;
+package competition.samsung.gotrash.service.generator;
 
-import competition.samsung.gotrash.entity.Sequence;
+import competition.samsung.gotrash.entity.TrashSequence;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -13,7 +13,7 @@ import java.util.Objects;
 import static org.springframework.data.mongodb.core.FindAndModifyOptions.options;
 
 @Service
-public class SequenceGeneratorService {
+public class TrashSequenceGeneratorService {
     @Autowired
     private MongoOperations mongoOperations;
 
@@ -24,10 +24,10 @@ public class SequenceGeneratorService {
         //update the sequence no
         Update update = new Update().inc("number", 1);
         //modify in document
-        Sequence counter = mongoOperations
+        TrashSequence counter = mongoOperations
                 .findAndModify(query,
                         update, options().returnNew(true).upsert(true),
-                        Sequence.class);
+                        TrashSequence.class);
 
         return !Objects.isNull(counter) ? counter.getNumber() : 1;
     }

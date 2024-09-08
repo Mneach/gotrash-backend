@@ -1,7 +1,8 @@
-package competition.samsung.gotrash.service;
+package competition.samsung.gotrash.service.implement;
 
 import competition.samsung.gotrash.entity.RewardCategory;
 import competition.samsung.gotrash.repository.RewardCategoryRepository;
+import competition.samsung.gotrash.service.RewardCategoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
