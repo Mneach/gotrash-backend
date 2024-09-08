@@ -7,8 +7,9 @@ import java.util.Optional;
 
 public interface TrashService {
     List<Trash> findAll();
-    Optional<Trash> findById(String id);
+    Optional<Trash> findById(Integer id);
     Trash save(Trash trash);
-    String delete(String id);
+    String delete(Integer id);
     Optional<Trash> findFirstByCategory(String category);
+    Optional<Trash> findLastTrashById();
 }

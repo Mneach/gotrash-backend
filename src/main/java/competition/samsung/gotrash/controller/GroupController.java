@@ -215,7 +215,7 @@ public class GroupController {
                 return new StandardResponse<>(HttpStatus.OK.value(), "Successfully removed member from group", null);
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return new StandardResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null);
         }
     }
 }

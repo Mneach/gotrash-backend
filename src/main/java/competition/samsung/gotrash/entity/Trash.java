@@ -1,10 +1,7 @@
 package competition.samsung.gotrash.entity;
 
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.annotation.Version;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigInteger;
@@ -16,10 +13,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Trash {
 
+    @Transient
+    public static final String SEQUENCE_NAME = "trash_sequence";
+
     @Id
-    private String id;
-    private String name;
-    private String category;
+    private Integer id;
+    private Integer category;
+    private String description;
     private BigInteger coin;
     private BigInteger rating;
 

@@ -1,8 +1,9 @@
-package competition.samsung.gotrash.service;
+package competition.samsung.gotrash.service.implement;
 
 import competition.samsung.gotrash.entity.Notification;
 import competition.samsung.gotrash.entity.User;
 import competition.samsung.gotrash.repository.NotificationRepository;
+import competition.samsung.gotrash.service.NotificationService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +12,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class NotificationServiceImpl implements NotificationService{
+public class NotificationServiceImpl implements NotificationService {
 
     private NotificationRepository notificationRepository;
 

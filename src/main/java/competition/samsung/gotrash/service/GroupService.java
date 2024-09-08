@@ -11,6 +11,6 @@ public interface GroupService {
     Optional<Group> findById(String id) throws Exception;
     Group save(Group group);
     String delete(String id);
-    Optional<Group> getGroupByIdAndSortMembers(String id);
+    Optional<Group> getGroupByIdAndSortMembers(String id) throws Exception;
     List<Group> findGroupsByUserId(Integer id);
 }

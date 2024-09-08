@@ -2,8 +2,10 @@ package competition.samsung.gotrash.dto;
 
 import lombok.Data;
 
+import java.math.BigInteger;
+
 @Data
-public class AddCoinDTO {
+public class MissionDTO {
     private int userId;
-    private int trashId;
+    private BigInteger coin;
 }
