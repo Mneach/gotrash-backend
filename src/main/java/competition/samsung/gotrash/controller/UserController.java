@@ -140,6 +140,7 @@ public class UserController {
         user.setCoin(BigInteger.valueOf(0));
         user.setRating(BigInteger.valueOf(0));
         user.setTrashHistory(new ArrayList<>());
+        user.setPhoneNumber("");
 
         User data = userService.save(user);
 
@@ -241,6 +242,7 @@ public class UserController {
                         for(User member : group.getMembers()){
                             if(Objects.equals(member.getId(), user.getId())){
                                 member.setRating(user.getRating());
+                                member.setCoin(user.getCoin());
                                 updated = true;
                             }
                         }
@@ -273,6 +275,25 @@ public class UserController {
                 User user = userOptional.get();
                 BigInteger updateCoin = user.getCoin().add(missionDTO.getCoin());
                 user.setCoin(updateCoin);
+
+                Optional<Group> optionalGroup = groupService.findById(user.getGroupId());
+
+                if(optionalGroup.isPresent()){
+                    Group group = optionalGroup.get();
+
+                    boolean updated = false;
+                    for(User member : group.getMembers()){
+                        if(Objects.equals(member.getId(), user.getId())){
+                            member.setRating(user.getRating());
+                            member.setCoin(user.getCoin());
+                            updated = true;
+                        }
+                    }
+
+                    if(updated){
+                        groupService.save(group);
+                    }
+                }
 
                 User data = userService.save(user);
                 return new StandardResponse<>(HttpStatus.OK.value(), "User Coin Updated", data);
