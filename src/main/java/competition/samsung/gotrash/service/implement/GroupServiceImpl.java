@@ -1,10 +1,12 @@
-package competition.samsung.gotrash.service;
+package competition.samsung.gotrash.service.implement;
 
 import competition.samsung.gotrash.constant.ServiceName;
 import competition.samsung.gotrash.entity.Group;
 import competition.samsung.gotrash.entity.Reward;
 import competition.samsung.gotrash.entity.User;
 import competition.samsung.gotrash.repository.GroupRepository;
+import competition.samsung.gotrash.service.GroupService;
+import competition.samsung.gotrash.service.S3Service;
 import competition.samsung.gotrash.utils.S3BucketUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +18,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class GroupServiceImpl implements GroupService{
+public class GroupServiceImpl implements GroupService {
 
     private GroupRepository groupRepository;
     private S3Service s3Service;
@@ -58,7 +60,7 @@ public class GroupServiceImpl implements GroupService{
         return Optional.of(group);
     }
 
-    public Optional<Group> getGroupByIdAndSortMembers(String id) {
+    public Optional<Group> getGroupByIdAndSortMembers(String id) throws Exception {
         Optional<Group> optionalGroup = groupRepository.findById(id);
 
         if(optionalGroup.isEmpty()){
@@ -66,7 +68,14 @@ public class GroupServiceImpl implements GroupService{
         }
 
         Group group = optionalGroup.get();
-        // Sort members by rating in descending order
+        if(!Objects.equals(group.getTargetReward().getImageUrl(), "")){
+            Reward reward = group.getTargetReward();
+            String objectKeys = S3BucketUtil.createObjectKey(ServiceName.REWARD, reward.getId(), reward.getImageName());
+            String presignUrl = s3Service.getPresignUrl(objectKeys);
+            reward.setImageUrl(presignUrl);
+            group.setTargetReward(reward);
+        }
+
         group.getMembers().sort(Comparator.comparing(User::getRating).reversed());
 
         return Optional.of(group);

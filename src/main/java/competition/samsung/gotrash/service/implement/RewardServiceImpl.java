@@ -1,7 +1,8 @@
-package competition.samsung.gotrash.service;
+package competition.samsung.gotrash.service.implement;
 
 import competition.samsung.gotrash.entity.Reward;
 import competition.samsung.gotrash.repository.RewardRepository;
+import competition.samsung.gotrash.service.RewardService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -10,7 +11,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class RewardServiceImpl implements RewardService{
+public class RewardServiceImpl implements RewardService {
 
     private RewardRepository rewardRepository;
 

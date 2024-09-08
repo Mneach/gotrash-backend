@@ -1,7 +1,8 @@
-package competition.samsung.gotrash.service;
+package competition.samsung.gotrash.service.implement;
 
 import competition.samsung.gotrash.entity.User;
 import competition.samsung.gotrash.repository.UserRepository;
+import competition.samsung.gotrash.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
