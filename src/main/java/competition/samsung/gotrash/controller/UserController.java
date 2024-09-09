@@ -148,6 +148,7 @@ public class UserController {
         user.setTrashHistory(new ArrayList<>());
         user.setPhoneNumber("");
         user.setCurrentStreak(0);
+        userService.save(user);
 
         // Seed Notification
         Notification notification = new Notification();
@@ -176,8 +177,8 @@ public class UserController {
         // seed streak
         userService.calculateWeeklyStreak(user);
 
-        User data = userService.save(user);
-        return new StandardResponse<>(HttpStatus.OK.value(), "Successfully created guest", data);
+        User updatedUser = userService.save(user);
+        return new StandardResponse<>(HttpStatus.OK.value(), "Successfully created guest", updatedUser);
     }
 
     @PatchMapping(value = "/user/update/{id}", consumes = {"multipart/form-data"})
