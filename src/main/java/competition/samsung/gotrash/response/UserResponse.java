@@ -28,6 +28,8 @@ public class UserResponse {
     private String phoneNumber;
     private BigInteger coin;
     private BigInteger rating;
+    private Integer currentStreak;
+    private LocalDateTime lastStreakResetDate;
     private List<Trash> trashHistory;
     private Group group;
     private LocalDateTime createdAt;
