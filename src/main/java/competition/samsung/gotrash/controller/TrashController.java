@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -70,6 +71,25 @@ public class TrashController {
 
         return new StandardResponse<>(HttpStatus.CREATED.value(), "Successfully created trash", savedTrash);
     }
+
+    @PostMapping("/trash/seed/streak")
+    public StandardResponse<Trash> seedTrashForStreak(@RequestBody Trash trash) {
+        Integer id = trashSequenceGeneratorService.getSequenceNumber(SEQUENCE_NAME);
+        trash.setId(id);
+
+        trash.setCoin(TrashUtil.GetTrashCoin(trash));
+        trash.setRating(TrashUtil.GetTrashRating(trash));
+
+        LocalDateTime seedTime = trash.getCreatedAt();
+
+        Trash savedTrash = trashService.save(trash);
+
+        savedTrash.setCreatedAt(seedTime);
+
+        Trash updatedTrash = trashService.save(savedTrash);
+        return new StandardResponse<>(HttpStatus.CREATED.value(), "Successfully created trash", updatedTrash);
+    }
+
 
     @PatchMapping("/trash/update/{id}")
     public StandardResponse<Trash> updateTrash(@PathVariable("id") Integer id, @RequestBody Trash trash) {

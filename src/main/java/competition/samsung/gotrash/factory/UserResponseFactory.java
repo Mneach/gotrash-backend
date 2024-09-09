@@ -21,6 +21,8 @@ public class UserResponseFactory {
                 .coin(user.getCoin())
                 .rating(user.getRating())
                 .trashHistory(user.getTrashHistory())
+                .currentStreak(user.getCurrentStreak())
+                .lastStreakResetDate(user.getLastStreakResetDate())
                 .group(group)
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())

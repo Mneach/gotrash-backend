@@ -10,10 +10,13 @@ import competition.samsung.gotrash.entity.Trash;
 import competition.samsung.gotrash.entity.User;
 import competition.samsung.gotrash.factory.UserResponseFactory;
 import competition.samsung.gotrash.response.StandardResponse;
+import competition.samsung.gotrash.response.StreakResponse;
 import competition.samsung.gotrash.response.UserResponse;
 import competition.samsung.gotrash.service.*;
 import competition.samsung.gotrash.service.generator.SequenceGeneratorService;
+import competition.samsung.gotrash.service.generator.TrashSequenceGeneratorService;
 import competition.samsung.gotrash.utils.S3BucketUtil;
+import competition.samsung.gotrash.utils.TrashUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +38,7 @@ public class UserController {
     private GroupService groupService;
     private NotificationService notificationService;
     private SequenceGeneratorService sequenceGeneratorService;
+    private TrashSequenceGeneratorService trashSequenceGeneratorService;
 
     @GetMapping("/users")
     public StandardResponse<List<UserResponse>> findAll(){
@@ -82,6 +86,8 @@ public class UserController {
 
             Optional<Group> group = groupService.getGroupByIdAndSortMembers(user.getGroupId());
             UserResponse userResponses;
+
+            userService.calculateWeeklyStreak(user);
 
             if(group.isPresent()){
                 userResponses = UserResponseFactory.createUserResponse(user, group.get());
@@ -141,10 +147,9 @@ public class UserController {
         user.setRating(BigInteger.valueOf(0));
         user.setTrashHistory(new ArrayList<>());
         user.setPhoneNumber("");
+        user.setCurrentStreak(0);
 
-        User data = userService.save(user);
-
-        // Create Notification
+        // Seed Notification
         Notification notification = new Notification();
         notification.setId(UUID.randomUUID().toString());
         notification.setTitle("Selamat Datang di Aplikasi GoTrash");
@@ -152,6 +157,26 @@ public class UserController {
         notification.setDescription("");
         notificationService.save(notification);
 
+        // Seed Trash
+        Trash trash = new Trash();
+        Integer trashId = trashSequenceGeneratorService.getSequenceNumber(SEQUENCE_NAME);
+        trash.setCategory(3);
+        trash.setDescription("Bonus From Registration");
+        trash.setId(trashId);
+        trash.setCoin(TrashUtil.GetTrashCoin(trash));
+        trash.setRating(TrashUtil.GetTrashRating(trash));
+        trashService.save(trash);
+
+        List<Trash> updateTrashHistory = user.getTrashHistory();
+        updateTrashHistory.add(trash);
+
+        user.setCoin(trash.getCoin());
+        user.setRating(trash.getRating());
+
+        // seed streak
+        userService.calculateWeeklyStreak(user);
+
+        User data = userService.save(user);
         return new StandardResponse<>(HttpStatus.OK.value(), "Successfully created guest", data);
     }
 
@@ -224,7 +249,6 @@ public class UserController {
                 try{
                     User user = userOptional.get();
                     Trash trash = trashOptional.get();
-                    System.out.println("TESTER");
                     List<Trash> updateTrashHistory = user.getTrashHistory();
                     updateTrashHistory.add(trash);
                     BigInteger updateCoin = user.getCoin().add(trash.getCoin());
@@ -251,6 +275,8 @@ public class UserController {
                             groupService.save(group);
                         }
                     }
+
+                    userService.calculateWeeklyStreak(user);
 
                     User data = userService.save(user);
                     return new StandardResponse<>(HttpStatus.OK.value(), "User Coin Updated", trash);
@@ -303,5 +329,18 @@ public class UserController {
         }else{
             return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User Not Found", null);
         }
+    }
+
+    @GetMapping("/user/streak/{id}")
+    public StandardResponse<List<StreakResponse>> getUserStreak(@PathVariable Integer id) {
+        Optional<User> data = userService.findById(id);
+
+        if(data.isEmpty()){
+            return new StandardResponse<>(HttpStatus.NOT_FOUND.value(), "User Not Found", null);
+        }
+
+        List<StreakResponse> streakHistory = userService.getWeeklyStreakData(data.get());
+
+        return new StandardResponse<>(HttpStatus.OK.value(), "Successfully retrieved user streaks", streakHistory);
     }
 }

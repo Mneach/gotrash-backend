@@ -29,6 +29,8 @@ public class User {
     private List<Trash> trashHistory;
     private String groupId;
     private BigInteger rating;
+    private Integer currentStreak;
+    private LocalDateTime lastStreakResetDate;
 
     @CreatedDate
     private LocalDateTime createdAt;
